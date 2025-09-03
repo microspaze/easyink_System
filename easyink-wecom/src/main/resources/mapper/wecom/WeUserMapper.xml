@@ -95,7 +95,7 @@
             <otherwise>AND wu.is_activate != ${@com.easyink.common.constant.WeConstans@WE_USER_IS_LEAVE}</otherwise>
         </choose>
         <if test="userName != null and userName != ''">
-            AND position(#{userName} IN wu.user_name)
+            AND (position(#{userName} IN wu.user_name) OR position(#{userName} IN wu.mobile) OR position(#{userName} IN wu.email))
         </if>
         <if test="isAllocate != null">
             AND wu.is_allocate = #{isAllocate}
@@ -153,7 +153,7 @@
         ${params.dataScope}
         <if test="isActivate != null  and isActivate != ''">and wu.is_activate = #{isActivate}</if>
         <if test="avatarMediaid != null  and avatarMediaid != ''">and wu.head_image_url = #{avatarMediaid}</if>
-        <if test="name != null  and name != ''">and wu.user_name like concat('%', #{name}, '%')</if>
+        <if test="name != null  and name != ''">and (wu.user_name like concat('%', #{name}, '%') or wu.mobile like concat('%', #{name}, '%')  or wu.email like concat('%', #{name}, '%'))</if>
         <if test="alias != null  and alias != ''">and wu.alias = #{alias}</if>
         <if test="userId != null  and userId != ''">and wu.user_id = #{userId}</if>
         <if test="gender != null ">and wu.gender = #{gender}</if>
