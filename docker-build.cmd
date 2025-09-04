@@ -1,1 +1,1 @@
-docker build -f easyink-admin/src/main/docker/Dockerfile --build-arg JAR_FILE=easyink-admin/target/*.jar -t wecomscrm:latest .
+docker build -f easyink-admin/src/main/docker/Dockerfile --build-arg JAR_FILE=easyink-admin/target/*.jar -t wecomscrm:develope .
