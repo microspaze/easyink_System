@@ -1,1 +1,1 @@
-docker build -f easyink-admin/src/main/docker/Dockerfile --build-arg JAR_FILE=easyink-admin/target/*.jar -t wecomscrm:develope .
+docker build -f easyink-admin/src/main/docker/Dockerfile --build-arg JAR_FILE=easyink-admin/target/*.jar --build-arg FINANCE_SDK_FILE=easyink-admin/src/main/resources/lib/libWeWorkFinanceSdk_Java.so -t wecomscrm:develope .
