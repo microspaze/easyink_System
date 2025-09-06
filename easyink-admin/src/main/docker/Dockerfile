@@ -36,4 +36,4 @@ EXPOSE 8090
 CMD ["/bin/bash"]
 
 # 启动命令（保持原逻辑）
-ENTRYPOINT ["sh","-c","java -server $JAVA_OPTS -jar /app.jar"]
+ENTRYPOINT ["sh","-c","java -server $JAVA_OPTS -jar app.jar"]
