@@ -50,8 +50,7 @@ public class WeEmpleCodeAnalyseServiceImpl extends ServiceImpl<WeEmpleCodeAnalys
 
     private final WeEmpleCodeAnalyseMapper weEmpleCodeAnalyseMapper;
 
-    @Override
-    public WeEmplyCodeAnalyseVO getTimeRangeAnalyseCount(FindWeEmpleCodeAnalyseDTO analyseDTO) {
+    private List<WeEmplyCodeAnalyseCountVO> getTimeRangeAnalyseList(FindWeEmpleCodeAnalyseDTO analyseDTO) {
         if (analyseDTO == null || StringUtils.isBlank(analyseDTO.getCorpId()) || StringUtils.isBlank(analyseDTO.getState()) || StringUtils.isBlank(analyseDTO.getBeginTime()) || StringUtils.isBlank(analyseDTO.getEndTime())) {
             throw new CustomException(ResultTip.TIP_GENERAL_BAD_REQUEST);
         }
@@ -59,10 +58,6 @@ public class WeEmpleCodeAnalyseServiceImpl extends ServiceImpl<WeEmpleCodeAnalys
         if (Boolean.TRUE.equals(!DateUtils.isMatchFormat(analyseDTO.getBeginTime(), DateUtils.YYYY_MM_DD)) || Boolean.TRUE.equals(!DateUtils.isMatchFormat(analyseDTO.getEndTime(), DateUtils.YYYY_MM_DD))) {
             throw new CustomException(ResultTip.TIP_TIME_FORMAT_ERROR);
         }
-        //查询两个时间内的所有日期
-        Date startTime = DateUtils.dateTime(DateUtils.YYYY_MM_DD, analyseDTO.getBeginTime());
-        Date endTime = DateUtils.dateTime(DateUtils.YYYY_MM_DD, analyseDTO.getEndTime());
-        List<Date> dates = DateUtils.findDates(startTime, endTime);
 
         // 员工ID列表
         List<String> userIdList = new ArrayList<>();
@@ -80,7 +75,19 @@ public class WeEmpleCodeAnalyseServiceImpl extends ServiceImpl<WeEmpleCodeAnalys
             analyseDTO.setUserIdList(userIdList);
         }
         //查询时间段内新增和流失客户数据
-        List<WeEmplyCodeAnalyseCountVO> weEmpleCodeAnalyses = baseMapper.selectCountList(analyseDTO);
+        List<WeEmplyCodeAnalyseCountVO> weEmpleCodeAnalyses = analyseDTO.getByUser() ? baseMapper.selectUserCountList(analyseDTO) : baseMapper.selectCountList(analyseDTO);
+        return weEmpleCodeAnalyses;
+    }
+    
+    @Override
+    public WeEmplyCodeAnalyseVO getTimeRangeAnalyseCount(FindWeEmpleCodeAnalyseDTO analyseDTO) {
+        //查询时间段内新增和流失客户数据
+        List<WeEmplyCodeAnalyseCountVO> weEmpleCodeAnalyses = getTimeRangeAnalyseList(analyseDTO);
+        
+        //查询两个时间内的所有日期
+        Date startTime = DateUtils.dateTime(DateUtils.YYYY_MM_DD, analyseDTO.getBeginTime());
+        Date endTime = DateUtils.dateTime(DateUtils.YYYY_MM_DD, analyseDTO.getEndTime());
+        List<Date> dates = DateUtils.findDates(startTime, endTime);
 
         //dataMap <time,WeEmplyCodeAnalyseCountVO>
         Map<Date, WeEmplyCodeAnalyseCountVO> dataMap = new HashMap<>(weEmpleCodeAnalyses.size());
@@ -102,7 +109,7 @@ public class WeEmpleCodeAnalyseServiceImpl extends ServiceImpl<WeEmpleCodeAnalys
         }
         int total = getAddCountByState(analyseDTO.getState());
         // 部门查询下，若查询的部门内未拥有员工，返回空数据，但统计总数依旧返回
-        if(CollectionUtils.isEmpty(userIdList) && StringUtils.isNotBlank(analyseDTO.getDepartmentId())){
+        if(CollectionUtils.isEmpty(analyseDTO.getUserIdList()) && StringUtils.isNotBlank(analyseDTO.getDepartmentId())){
             List<WeEmplyCodeAnalyseCountVO> result = new ArrayList<>();
             for (Date date : dates) {
                 analyseCountVO = new WeEmplyCodeAnalyseCountVO();
@@ -120,14 +127,15 @@ public class WeEmpleCodeAnalyseServiceImpl extends ServiceImpl<WeEmpleCodeAnalys
         if (weEmpleCode == null || StringUtils.isBlank(weEmpleCode.getScenario())) {
             throw new CustomException(ResultTip.TIP_EMPLY_CODE_NOT_FOUND);
         }
-        WeEmplyCodeAnalyseVO timeRangeAnalyseCount = getTimeRangeAnalyseCount(findWeEmpleCodeAnalyseDTO);
-        if (timeRangeAnalyseCount == null || CollectionUtils.isEmpty(timeRangeAnalyseCount.getList())) {
+        //查询时间段内新增和流失客户数据
+        findWeEmpleCodeAnalyseDTO.setByUser(true);
+        List<WeEmplyCodeAnalyseCountVO> weEmpleCodeAnalyses = getTimeRangeAnalyseList(findWeEmpleCodeAnalyseDTO);
+        if (weEmpleCodeAnalyses == null || CollectionUtils.isEmpty(weEmpleCodeAnalyses)) {
             throw new CustomException(ResultTip.TIP_NO_DATA_TO_EXPORT);
         }
-        String sheetName = weEmpleCode.getScenario() + "的数据详情";
-        List<WeEmplyCodeAnalyseCountVO> list = timeRangeAnalyseCount.getList();
+        String sheetName = weEmpleCode.getScenario() + findWeEmpleCodeAnalyseDTO.getBeginTime() + "至"  + findWeEmpleCodeAnalyseDTO.getEndTime() + "的数据详情";
         ExcelUtil<WeEmplyCodeAnalyseCountVO> util = new ExcelUtil<>(WeEmplyCodeAnalyseCountVO.class);
-        return util.exportExcel(list, sheetName);
+        return util.exportExcel(weEmpleCodeAnalyses, sheetName);
     }
 
     @Override

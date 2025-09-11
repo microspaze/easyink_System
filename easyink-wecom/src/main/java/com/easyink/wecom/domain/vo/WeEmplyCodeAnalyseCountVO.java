@@ -23,11 +23,15 @@ public class WeEmplyCodeAnalyseCountVO {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date time;
 
+    @ApiModelProperty(value = "员工")
+    @Excel(name = "员工", sort = 2)
+    private String employee = "";
+
     @ApiModelProperty(value = "新增总数")
-    @Excel(name = "新增人数", sort = 2)
+    @Excel(name = "新增人数", sort = 3)
     private Integer addCount = 0;
 
     @ApiModelProperty(value = "删除总数")
-    @Excel(name = "流失人数", sort = 3)
+    @Excel(name = "流失人数", sort = 4)
     private Integer loseCount = 0;
 }

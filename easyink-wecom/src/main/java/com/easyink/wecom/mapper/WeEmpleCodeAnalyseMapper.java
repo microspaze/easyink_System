@@ -47,6 +47,14 @@ public interface WeEmpleCodeAnalyseMapper extends BaseMapper<WeEmpleCodeAnalyse>
     List<WeEmplyCodeAnalyseCountVO> selectCountList(FindWeEmpleCodeAnalyseDTO analyseDTO);
 
     /**
+     * 查询日期区间员工的新增和流失数量
+     *
+     * @param analyseDTO analyseDTO
+     * @return List<WeEmplyCodeAnalyseCountVO>
+     */
+    List<WeEmplyCodeAnalyseCountVO> selectUserCountList(FindWeEmpleCodeAnalyseDTO analyseDTO);
+    
+    /**
      * 新增
      *
      * @param weEmpleCodeAnalyse weEmpleCodeAnalyse

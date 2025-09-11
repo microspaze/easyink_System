@@ -61,6 +61,39 @@
         </if>
         GROUP BY `add_code_time`
     </select>
+    <select id="selectUserCountList" parameterType="com.easyink.wecom.domain.dto.emplecode.FindWeEmpleCodeAnalyseDTO"
+            resultType="com.easyink.wecom.domain.vo.WeEmplyCodeAnalyseCountVO">
+        SELECT
+        SUM(IF( weca.`type` = 1, 1, 0 )) addCount,
+        SUM(IF( weca.`type` = 0, 1, 0 )) loseCount,
+        wu.user_name AS `employee`
+        FROM
+        we_emple_code_analyse AS weca
+        INNER JOIN we_user AS wu
+        ON weca.user_id = wu.user_id
+        WHERE weca.corp_id = #{corpId}
+        <if test="state!=null">
+            AND weca.emple_code_id = #{state}
+        </if>
+        <if test="userId!=null and userId!=''">
+            AND weca.user_id = #{userId}
+        </if>
+        <if test="userIdList != null and userIdList.size() != 0 ">
+            AND weca.user_id IN(
+            <foreach collection="userIdList" item="item" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+        <if test="beginTime!=null and beginTime!=''">
+            AND weca.`add_code_time` &gt;= #{beginTime}
+        </if>
+        <if test="endTime!=null and endTime!=''">
+            AND weca.`add_code_time` &lt;= #{endTime}
+        </if>
+        GROUP BY wu.user_name
+    </select>
+    
     <!--获取企业下所有活码-员工对应的新增客户数和流失客户数-->
     <select id="getEmpleStatisticDateData" resultType="com.easyink.wecom.domain.WeEmpleCodeStatistic">
         SELECT emple_code_id,
