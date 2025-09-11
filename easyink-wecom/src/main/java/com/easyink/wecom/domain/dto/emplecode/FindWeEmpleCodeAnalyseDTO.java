@@ -42,5 +42,5 @@ public class FindWeEmpleCodeAnalyseDTO {
     private String corpId;
 
     @ApiModelProperty(value = "按员工统计")
-    private Boolean byUser;
+    private Boolean byUser = false;
 }
