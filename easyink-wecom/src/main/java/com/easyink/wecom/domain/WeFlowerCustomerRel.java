@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.easyink.common.annotation.Excel;
-import com.easyink.common.constant.Constants;
+import com.easyink.common.constant.WeConstans;
 import com.easyink.common.utils.DateUtils;
 import com.easyink.common.utils.SnowFlakeUtil;
 import com.easyink.common.utils.bean.BeanUtils;
@@ -227,6 +227,10 @@ public class WeFlowerCustomerRel {
             this.wechatChannel = StringUtils.EMPTY;
         } else {
             this.wechatChannel = followInfo.getWechat_channels().getNickname();
+        }
+        if (this.state.indexOf(WeConstans.TAG_PREFIX)>0) {
+            // 保存到数据库时，从state中分离额外标签信息，否则统计信息不正确
+            this.state = this.state.split(WeConstans.TAG_PREFIX,1)[0];
         }
     }
 

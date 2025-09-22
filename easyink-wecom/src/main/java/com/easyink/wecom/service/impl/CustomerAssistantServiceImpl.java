@@ -241,7 +241,7 @@ public class CustomerAssistantServiceImpl implements CustomerAssistantService {
         try {
             // 从state中分离额外标签信息：hk_1963898977023823872_tg_tag1,tag2,tag3
             List<String> extraTagList = new ArrayList<>();
-            String[] stateParts = state.split(CustomerAssistantConstants.STATE_TAG_PREFIX, 2);
+            String[] stateParts = state.split(WeConstans.TAG_PREFIX, 2);
             if (stateParts.length == 2) {
                 state = stateParts[0];
                 extraTagList.addAll(Arrays.asList(stateParts[1].split(WeConstans.COMMA)));

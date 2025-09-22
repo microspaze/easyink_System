@@ -354,6 +354,8 @@ public class WeConstans {
 
     public static final String COMMA = ",";
 
+    public static final String TAG_PREFIX = "_tg_";
+
     public static final String USER_ID = "userid";
 
     public static final String CURSOR = "cursor";
