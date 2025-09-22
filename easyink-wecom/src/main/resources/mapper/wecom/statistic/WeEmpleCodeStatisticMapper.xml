@@ -152,9 +152,9 @@
         corp_id = #{corpId}
         AND `status` NOT IN ('${@com.easyink.common.enums.CustomerStatusEnum@DRAIN.code}', '${@com.easyink.common.enums.CustomerStatusEnum@DELETE.code}')
         <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
-            AND state IN
-            <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
-                #{empleCodeId}
+            AND
+            <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator=" OR " close=")">
+                state LIKE CONCAT(#{empleCodeId}, '%')
             </foreach>
         </if>
         <if test="userIds != null and userIds.size() > 0">
