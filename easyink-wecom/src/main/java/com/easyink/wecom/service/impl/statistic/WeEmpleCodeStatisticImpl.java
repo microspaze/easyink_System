@@ -114,7 +114,13 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
                 .ge(WeFlowerCustomerRel::getCreateTime, DateUtils.parseBeginDay(dto.getBeginDate()))
                 .le(WeFlowerCustomerRel::getCreateTime, DateUtils.parseEndDay(dto.getEndDate()));
         if (CollectionUtils.isNotEmpty(findStateList)) {
-            queryWrapper.in(WeFlowerCustomerRel::getState, findStateList);
+            // queryWrapper.in(WeFlowerCustomerRel::getState, findStateList);
+            // 使用or()和likeRight组合查询：state 以 findStateList 中任意一个字符串开头
+            queryWrapper.and(wrapper -> {
+                for (String prefix : findStateList) {
+                    wrapper.or().likeRight(WeFlowerCustomerRel::getState, prefix);
+                }
+            });
         }
         if (CollectionUtils.isNotEmpty(dto.getUserIds())) {
             queryWrapper.in(WeFlowerCustomerRel::getUserId, dto.getUserIds());
