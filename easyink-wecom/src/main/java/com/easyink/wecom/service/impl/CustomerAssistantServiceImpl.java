@@ -239,6 +239,14 @@ public class CustomerAssistantServiceImpl implements CustomerAssistantService {
     public void callBackAddAssistantHandle(String state, String userId, String externalUserId, String corpId) {
         log.info("[获客链接] 获客链接渠道，新增回调处理开始，state:{},corpId:{},userId:{},externalUserId:{}", state, corpId, userId, externalUserId);
         try {
+            // 从state中分离额外标签信息：hk_1963898977023823872_tg_tag1,tag2,tag3
+            List<String> extraTagList = new ArrayList<>();
+            String[] stateParts = state.split(CustomerAssistantConstants.STATE_TAG_PREFIX, 2);
+            if (stateParts.length == 2) {
+                state = stateParts[0];
+                extraTagList.addAll(Arrays.asList(stateParts[1].split(WeConstans.COMMA)));
+            }
+            
             // 将"hk_"前缀截取掉，得到渠道id作为state信息
             state = state.replace(CustomerAssistantConstants.STATE_PREFIX, StringUtils.EMPTY);
             // 获取获客链接信息
@@ -286,7 +294,7 @@ public class CustomerAssistantServiceImpl implements CustomerAssistantService {
                 // 查询外部联系人的信息
                 WeCustomer weCustomer = weCustomerService.getOne(new LambdaQueryWrapper<WeCustomer>().eq(WeCustomer::getExternalUserid, externalUserId));
                 //为外部联系人添加员工活码标签
-                setAssistantTag(weFlowerCustomerRel, assistantId, assistantInfo.getTagFlag());
+                setAssistantTag(weFlowerCustomerRel, assistantId, assistantInfo.getTagFlag(), extraTagList);
                 // 打标签后休眠1S , 避免出现打标签后又打备注提示接口调用频繁 Tower 任务: 客户扫活码加好友之后没有自动备注 ( https://tower.im/teams/636204/todos/69053 )
                 ThreadUtil.safeSleep(1000L);
                 // 判断是否需要设置备注
@@ -304,7 +312,7 @@ public class CustomerAssistantServiceImpl implements CustomerAssistantService {
      * @param assistantId         获客链接主键ID
      * @param tagFlag             是否打标签
      */
-    private void setAssistantTag(WeFlowerCustomerRel weFlowerCustomerRel, String assistantId, Boolean tagFlag) {
+    private void setAssistantTag(WeFlowerCustomerRel weFlowerCustomerRel, String assistantId, Boolean tagFlag, List<String> extraTagList) {
         if (weFlowerCustomerRel == null || org.apache.commons.lang3.StringUtils.isBlank(assistantId) || tagFlag == null) {
             log.info("[获客链接标签处理] 设置获客链接标签信息不足，assistantId={},tagFlag={},weFlowerCustomerRel={}", assistantId, tagFlag, JSONObject.toJSONString(weFlowerCustomerRel));
             return;
@@ -330,6 +338,9 @@ public class CustomerAssistantServiceImpl implements CustomerAssistantService {
                 weCustomerService.singleMarkLabel(weFlowerCustomerRel.getCorpId(), weFlowerCustomerRel.getUserId(), weFlowerCustomerRel.getExternalUserid(), tagIdList, weUser.getName());
                 // 获取有效的标签名称
                 List<String> tagNameList = weTagService.getTagNameByIds(tagIdList);
+                if (tagNameList != null && extraTagList != null && !extraTagList.isEmpty()) {
+                    tagNameList.addAll(extraTagList);
+                }
                 // 记录信息动态
                 recordAssistantTag(weFlowerCustomerRel.getCorpId(), weUser, weFlowerCustomerRel.getExternalUserid(), tagNameList, assistantId);
             }

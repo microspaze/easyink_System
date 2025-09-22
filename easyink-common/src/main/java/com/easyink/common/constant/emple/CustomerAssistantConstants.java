@@ -20,6 +20,11 @@ public class CustomerAssistantConstants {
     public static final String STATE_PREFIX = "hk_";
 
     /**
+     * 获客链接的渠道state额外标签前缀
+     */
+    public static final String STATE_TAG_PREFIX = "_tg_";
+
+    /**
      * 获客链接url后拼接的的state参数名称
      */
     public static final String STATE_URL = "?customer_channel=";
