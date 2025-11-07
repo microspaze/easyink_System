@@ -1050,8 +1050,9 @@ public class WeAutoConfigServiceImpl implements WeAutoConfigService {
      */
     private List<WeUser> matchUserId4SelfBuild(List<GetDepartMemberResp.MemberInfo> memberInfos, List<WeUser> weUserList) {
         // 生成 accid(userid) -> 成员隐私信息  映射
+        // 可能存在多个accid相同的对象，但信息是一样的，仅保留第一个
         Map<String, GetDepartMemberResp.MemberInfo> userIdMap = memberInfos.stream()
-                                                                           .collect(Collectors.toMap(GetDepartMemberResp.MemberInfo::getAcctid, a -> a));
+                                                                           .collect(Collectors.toMap(GetDepartMemberResp.MemberInfo::getAcctid, a -> a, (v1, v2) -> v1));
         for (WeUser user : weUserList) {
             if (StringUtils.isBlank(user.getUserId())) {
                 continue;
