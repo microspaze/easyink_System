@@ -26,9 +26,9 @@ public class EmpleCodeBaseVO {
     @ApiModelProperty("留存客户总数")
     @Excel(name = "留存客户总数", sort = 3)
     private Integer retainCustomerCnt = 0;
-
-    @ApiModelProperty("新增客户数")
-    @Excel(name = "新增客户数", sort = 4)
+    
+    @ApiModelProperty("新增客户数含已流失")
+    @Excel(name = "新增客户数含已流失", sort = 4)
     private Integer newCustomerCnt = 0;
 
     @ApiModelProperty("流失客户数")
@@ -36,10 +36,15 @@ public class EmpleCodeBaseVO {
     private Integer lossCustomerCnt = 0;
 
     @ApiModelProperty("截止当前时间，新增客户数")
+    @Excel(name = "截止当前时间，新增客户数", sort = 6)
     private Integer currentNewCustomerCnt = 0;
 
+    @ApiModelProperty("重复客户数")
+    @Excel(name = "重复客户数", sort = 7)
+    private Integer duplicateCustomerCnt = 0;
+
     @ApiModelProperty("新客留存率")
-    @Excel(name = "新客留存率", sort = 6)
+    @Excel(name = "新客留存率", sort = 8)
     private String retainNewCustomerRate;
 
     /**

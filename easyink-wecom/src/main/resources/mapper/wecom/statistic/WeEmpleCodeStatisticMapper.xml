@@ -47,6 +47,31 @@
             AND `statistics_time` &lt;= #{endDate}
         </if>
     </select>
+    <!--活码统计-重复添加-->
+    <select id="listEmpleDuplicate" resultType="com.easyink.wecom.domain.vo.statistics.emplecode.EmpleCodeBaseVO">
+        SELECT
+        SUM(add_times) - COUNT(*) AS duplicateCustomerCnt
+        FROM
+        (
+            SELECT als.external_userid, COUNT(als.id) AS add_times
+            FROM we_emple_code_analyse AS als
+            WHERE als.corp_id = #{corpId}
+            <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
+                AND als.emple_code_id IN
+                <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
+                    #{empleCodeId}
+                </foreach>
+            </if>
+            <if test="beginDate != null and beginDate != ''">
+                AND als.add_code_time &gt;= #{beginDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND als.add_code_time &lt;= #{endDate}
+            </if>
+            GROUP BY als.external_userid
+            HAVING add_times > 1
+        ) AS duplicate_users;
+    </select>
     <!--活码统计-员工维度-获取截止当前时间下，员工新增客户数-->
     <select id="listUserCustomerRel"
             resultType="com.easyink.wecom.domain.vo.statistics.emplecode.EmpleCodeUserVO">
@@ -107,6 +132,7 @@
             AND wecs.`statistics_time` &lt;= #{endDate}
         </if>
         GROUP BY wecs.user_id
+        ORDER BY accumulateCustomerCnt desc, retainCustomerCnt desc
     </select>
     <!--活码统计-活码维度-获取基础数据-->
     <select id="listEmple" resultType="com.easyink.wecom.domain.vo.statistics.emplecode.EmpleCodeVO">

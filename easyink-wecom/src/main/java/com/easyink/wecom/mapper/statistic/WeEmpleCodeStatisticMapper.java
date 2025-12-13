@@ -33,6 +33,14 @@ public interface WeEmpleCodeStatisticMapper extends BaseMapper<WeEmpleCodeStatis
     EmpleCodeBaseVO listEmpleTotal(EmpleCodeStatisticDTO dto);
 
     /**
+     * 活码统计-重复添加
+     *
+     * @param dto {@link EmpleCodeStatisticDTO}
+     * @return {@link EmpleCodeBaseVO}
+     */
+    EmpleCodeBaseVO listEmpleDuplicate(EmpleCodeStatisticDTO dto);
+    
+    /**
      * 活码统计-员工维度-获取基础数据
      *
      * @param dto {@link EmpleCodeStatisticDTO}

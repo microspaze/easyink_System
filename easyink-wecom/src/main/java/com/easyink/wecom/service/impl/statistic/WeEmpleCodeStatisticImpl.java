@@ -95,7 +95,6 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
         setUserListByDepartment(dto);
         // 获取基础数据
         EmpleCodeBaseVO baseVO = this.baseMapper.listEmpleTotal(dto);
-        int currentCustomerCnt = 0;
         // 不存在数据，返回默认值，而不是null
         if (baseVO == null) {
             return new EmpleCodeBaseVO();
@@ -104,30 +103,13 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
             // 处理缓存数据
             handleTotalRedisData(dto.getEndDate(), dto.getCorpId(), dto.getEmpleCodeIdList(), dto.getUserIds(), baseVO);
         }
-        // 用于查询的state来源列表
-        List<String> findStateList = getFindStateList(dto.getEmpleCodeIdList());
-        // 存在数据，则查询活码对应的截止当前时间下，新增客户数
-        LambdaQueryWrapper<WeFlowerCustomerRel> queryWrapper = new LambdaQueryWrapper<>();
-        // 统计we_flower_customer_rel表中state = 活码id，status != 1,2，时间为截止日期（YYYY-MM-DD HH:MM:DD） 的记录数
-        queryWrapper.eq(WeFlowerCustomerRel::getCorpId, dto.getCorpId())
-                .notIn(WeFlowerCustomerRel::getStatus, CustomerStatusEnum.DRAIN.getCode(), CustomerStatusEnum.DELETE.getCode())
-                .ge(WeFlowerCustomerRel::getCreateTime, DateUtils.parseBeginDay(dto.getBeginDate()))
-                .le(WeFlowerCustomerRel::getCreateTime, DateUtils.parseEndDay(dto.getEndDate()));
-        if (CollectionUtils.isNotEmpty(findStateList)) {
-            // queryWrapper.in(WeFlowerCustomerRel::getState, findStateList);
-            // 使用or()和likeRight组合查询：state 以 findStateList 中任意一个字符串开头
-            queryWrapper.and(wrapper -> {
-                for (String prefix : findStateList) {
-                    wrapper.or().likeRight(WeFlowerCustomerRel::getState, prefix);
-                }
-            });
-        }
-        if (CollectionUtils.isNotEmpty(dto.getUserIds())) {
-            queryWrapper.in(WeFlowerCustomerRel::getUserId, dto.getUserIds());
-        }
-        currentCustomerCnt = weFlowerCustomerRelService.count(queryWrapper);
         // 设置截止当前时间下的新增客户数
-        baseVO.setCurrentNewCustomerCnt(currentCustomerCnt);
+        baseVO.setCurrentNewCustomerCnt(baseVO.getNewCustomerCnt()-baseVO.getLossCustomerCnt());
+        // 设置截止当前时间下的新增客户总重复数
+        EmpleCodeBaseVO duplicateVO = this.baseMapper.listEmpleDuplicate(dto);
+        if (duplicateVO != null) {
+            baseVO.setDuplicateCustomerCnt(duplicateVO.getDuplicateCustomerCnt());
+        }
         return baseVO;
     }
 
@@ -155,22 +137,9 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
             // 处理缓存的数据
             handleUserRedisData(dto.getEndDate(), dto.getCorpId(), dto.getEmpleCodeIdList(), resultList);
         }
-        // 获取analyse表所有的客户id列表
-        List<String> externalUseridList = getFindExternalUserIdList(dto);
-        if (CollectionUtils.isEmpty(externalUseridList)) {
-            return resultList;
-        }
-        // 获取截止当前时间每个员工对应的有效客户数
-        List<EmpleCodeUserVO> userCustomerRels = this.baseMapper.listUserCustomerRel(dto.getCorpId(), externalUseridList, dto.getUserIds(), DateUtils.parseEndDay(dto.getEndDate()), DateUtils.parseBeginDay(dto.getBeginDate()));
-        if (CollectionUtils.isNotEmpty(userCustomerRels)) {
-            // 为对应的员工设置截止当前时间，员工对应的新增客户数
-            for (EmpleCodeUserVO empleCodeUserVO : resultList) {
-                for (EmpleCodeUserVO userCustomerRel : userCustomerRels) {
-                    if (empleCodeUserVO.getUserId().equals(userCustomerRel.getUserId())) {
-                        empleCodeUserVO.setCurrentNewCustomerCnt(userCustomerRel.getCurrentNewCustomerCnt());
-                    }
-                }
-            }
+        // 为对应的员工设置截止当前时间，员工对应的新增客户数
+        for (EmpleCodeUserVO empleCodeUserVO : resultList) {
+            empleCodeUserVO.setCurrentNewCustomerCnt(empleCodeUserVO.getNewCustomerCnt()-empleCodeUserVO.getLossCustomerCnt());
         }
         return resultList;
     }
