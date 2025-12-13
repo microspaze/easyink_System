@@ -183,28 +183,8 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
             // 处理缓存的数据
             handleEmpleRedisData(dto.getEndDate(), dto.getCorpId(), dto.getEmpleCodeIdList(), resultList, dto.getUserIds());
         }
-        // 用于查询的state来源列表
-        List<String> findStateList = getFindStateList(dto.getEmpleCodeIdList());
-        if (CollectionUtils.isEmpty(findStateList)) {
-            return resultList;
-        }
-        // 获取截止当前时间每个活码对应的有效客户
-        List<EmpleCodeVO> empleUserCustomerRels = this.baseMapper.listStateUserCustomerRel(dto.getCorpId(), findStateList, dto.getUserIds(), DateUtils.parseEndDay(dto.getEndDate()), DateUtils.parseBeginDay(dto.getBeginDate()));
-        if (CollectionUtils.isNotEmpty(empleUserCustomerRels)) {
-            // 根据活码id为对应的活码设置截止当前时间，员工对应的新增客户数
-            for (EmpleCodeVO empleCodeVO : resultList) {
-                for (EmpleCodeVO empleRels : empleUserCustomerRels) {
-                    // 如果是获客链接的state，截取掉"hk"后，到we_emple_code_channel表查询对应的获客链接id
-                    if (empleRels.getEmpleCodeId().startsWith(CustomerAssistantConstants.STATE_PREFIX)) {
-                        String channelId = empleRels.getEmpleCodeId().replace(CustomerAssistantConstants.STATE_PREFIX, StringUtils.EMPTY);
-                        WeEmpleCodeChannel channelInfo = weEmpleCodeChannelMapper.getChannelById(channelId);
-                        empleRels.setEmpleCodeId(String.valueOf(channelInfo.getEmpleCodeId()));
-                    }
-                    if (empleCodeVO.getEmpleCodeId().equals(empleRels.getEmpleCodeId())) {
-                        empleCodeVO.handleCurrentNewCustomerCnt(empleRels.getCurrentNewCustomerCnt());
-                    }
-                }
-            }
+        for (EmpleCodeVO empleCodeVO : resultList) {
+            empleCodeVO.handleCurrentNewCustomerCnt(empleCodeVO.getNewCustomerCnt()-empleCodeVO.getLossCustomerCnt());
         }
         return resultList;
     }
