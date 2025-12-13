@@ -56,6 +56,7 @@
             SELECT als.external_userid, COUNT(als.id) AS add_times
             FROM we_emple_code_analyse AS als
             WHERE als.corp_id = #{corpId}
+            AND als.type = 1
             <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
                 AND als.emple_code_id IN
                 <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
