@@ -33,19 +33,28 @@
         WHERE wd.corp_id = #{corpId}
           AND user_id = #{userId}
     </select>
-    <!--    查询部门和其下级部门的总人数-->
+    <!-- 查询部门和其下级部门的总人数 -->
     <select id="selectTotalUserCount" resultType="java.lang.Integer">
         SELECT COUNT(0)
         FROM we_user
         <where>
             corp_id = #{corpId}
-            AND main_department
-            IN
+            AND (
+            <!-- 主部门在部门列表中 -->
+            main_department IN
             <if test="list != null and list.size() >0">
                 <foreach collection="list" item="item" separator="," open="(" close=")">
                     #{item.id}
                 </foreach>
             </if>
+            <!-- 或者所属部门列表包含部门列表中的任何一个 -->
+            OR
+            <if test="list != null and list.size() >0">
+                <foreach collection="list" item="item" separator=" OR " open="(" close=")">
+                    FIND_IN_SET(#{item.id}, department) > 0
+                </foreach>
+            </if>
+            )
             <if test="isActivate != null">
                 AND is_activate = #{isActivate}
             </if>
