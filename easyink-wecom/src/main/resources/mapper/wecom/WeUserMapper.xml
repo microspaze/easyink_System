@@ -101,7 +101,7 @@
             AND wu.is_allocate = #{isAllocate}
         </if>
         <if test="departments != null and departments != ''">
-            AND CONCAT(',',wu.main_department,',') REGEXP CONCAT(',(',REPLACE(#{departments},',','|'),'),')
+            AND CONCAT(',',wu.department,',') REGEXP CONCAT(',(',REPLACE(#{departments},',','|'),'),')
         </if>
     </select>
 
