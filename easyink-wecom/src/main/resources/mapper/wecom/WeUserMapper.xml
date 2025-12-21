@@ -161,7 +161,7 @@
         <if test="email != null  and email != ''">and wu.email = #{email}</if>
         <if test="wxAccount != null  and wxAccount != ''">and wu.wx_account = #{wxAccount}</if>
         <if test="departmentStr != null  and departmentStr != ''  ">
-            and CONCAT(',',wu.main_department,',') REGEXP CONCAT(',(',REPLACE(#{departmentStr},',','|'),'),')
+            and CONCAT(',',wu.department,',') REGEXP CONCAT(',(',REPLACE(#{departmentStr},',','|'),'),')
         </if>
         <if test="position != null  and position != ''">and wu.position = #{position}</if>
         <if test="isLeaderInDept != null ">and wu.is_leader_in_dept = #{isLeaderInDept}</if>
