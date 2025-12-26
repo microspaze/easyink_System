@@ -241,7 +241,8 @@ public class CustomerAssistantServiceImpl implements CustomerAssistantService {
         try {
             // 从state中分离额外标签信息：hk_1963898977023823872_tg_tag1,tag2,tag3
             List<String> extraTagList = new ArrayList<>();
-            String[] stateParts = state.split(WeConstans.TAG_PREFIX, 2);
+            String fullState = state;
+            String[] stateParts = fullState.split(WeConstans.TAG_PREFIX, 2);
             if (stateParts.length == 2) {
                 state = stateParts[0];
                 extraTagList.addAll(Arrays.asList(stateParts[1].split(WeConstans.COMMA)));
@@ -282,17 +283,30 @@ public class CustomerAssistantServiceImpl implements CustomerAssistantService {
                 empleStatisticRedisCache.addNewCustomerCnt(corpId, DateUtils.dateTime(new Date()), Long.valueOf(assistantId), userId);
                 // 更新获客链接统计信息
                 weEmpleCodeAnalyseService.saveAssistantAnalyse(corpId, userId, externalUserId, state, assistantId, true);
+                // 查询外部联系人的信息
+                WeCustomer weCustomer = weCustomerService.getOne(new LambdaQueryWrapper<WeCustomer>().eq(WeCustomer::getExternalUserid, externalUserId));
+                if (weCustomer == null) {
+                    log.info("[获客链接] 未查询到该state对应的客户信息，state:{},corpId:{},userId:{},externalUserId:{}", state, corpId, userId, externalUserId);
+                    return;
+                }
                 //查询外部联系人与通讯录关系数据
                 WeFlowerCustomerRel weFlowerCustomerRel = weFlowerCustomerRelService
                         .getOne(new LambdaQueryWrapper<WeFlowerCustomerRel>()
                                 .eq(WeFlowerCustomerRel::getUserId, userId)
-                                .eq(WeFlowerCustomerRel::getExternalUserid, externalUserId)
-                                .eq(WeFlowerCustomerRel::getStatus, 0).last(GenConstants.LIMIT_1));
+                                .eq(WeFlowerCustomerRel::getExternalUserid, externalUserId).last(GenConstants.LIMIT_1));
+                if (weFlowerCustomerRel == null) {
+                    weFlowerCustomerRel = new WeFlowerCustomerRel();
+                    weFlowerCustomerRel.setCorpId(corpId);
+                    weFlowerCustomerRel.setUserId(userId);
+                    weFlowerCustomerRel.setExternalUserid(externalUserId);
+                    weFlowerCustomerRel.setOperUserid(externalUserId);
+                    weFlowerCustomerRel.setRemark(weCustomer.getRemark());
+                    weFlowerCustomerRel.setRemarkMobiles(weCustomer.getPhone());
+                    weFlowerCustomerRel.setDescription(weCustomer.getDesc());
+                }
                 // 更新获客链接state信息，拼接上之前截取掉的"hk_"前缀
-                weFlowerCustomerRel.setState(CustomerAssistantConstants.STATE_PREFIX + state);
-                weFlowerCustomerRelService.updateById(weFlowerCustomerRel);
-                // 查询外部联系人的信息
-                WeCustomer weCustomer = weCustomerService.getOne(new LambdaQueryWrapper<WeCustomer>().eq(WeCustomer::getExternalUserid, externalUserId));
+                weFlowerCustomerRel.setState(fullState);
+                weFlowerCustomerRelService.saveOrUpdate(weFlowerCustomerRel);
                 //为外部联系人添加员工活码标签
                 setAssistantTag(weFlowerCustomerRel, assistantId, assistantInfo.getTagFlag(), extraTagList);
                 // 打标签后休眠1S , 避免出现打标签后又打备注提示接口调用频繁 Tower 任务: 客户扫活码加好友之后没有自动备注 ( https://tower.im/teams/636204/todos/69053 )
