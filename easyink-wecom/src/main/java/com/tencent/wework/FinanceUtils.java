@@ -31,6 +31,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.PrivateKey;
@@ -493,17 +494,48 @@ public class FinanceUtils {
     //云存储
     private static void getPath(AttachmentBaseVO data, String msgType, String fileName, String sdkfileid, String corpId) {
         String filePath = getFilePath(msgType);
+        File tempFile = null;
         try {
             getMediaData(sdkfileid, "", "", filePath, fileName, corpId);
             RuoYiConfig ruoyiConfig = SpringUtils.getBean(RuoYiConfig.class);
             CosConfig cosConfig = ruoyiConfig.getFile().getCos();
             String suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
             StringBuilder cosUrl = new StringBuilder(cosConfig.getCosImgUrlPrefix());
-            String cosFilePath = FileUploadUtils.upload2Cos(Files.newInputStream(new File(filePath, fileName).toPath()), fileName, suffix, cosConfig);
-            cosUrl.append(cosFilePath);
-            data.setAttachment(cosUrl.toString());
+            
+            // 创建临时文件，并使用try-with-resources确保流被正确关闭
+            tempFile = new File(filePath, fileName);
+            try (InputStream inputStream = Files.newInputStream(tempFile.toPath())) {
+                String cosFilePath = FileUploadUtils.upload2Cos(inputStream, fileName, suffix, cosConfig);
+                cosUrl.append(cosFilePath);
+                data.setAttachment(cosUrl.toString());
+            }
         } catch (Exception e) {
             log.error("getPath Exception ex:【{}】", ExceptionUtils.getStackTrace(e));
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                deleteTempFile(tempFile);
+            }
+        }
+    }
+
+    //安全删除临时文件
+    private static void deleteTempFile(File file) {
+        if (file != null && file.exists()) {
+            String filePath = file.getAbsolutePath();
+            try {
+                boolean deleted = file.delete();
+                if (!deleted) {
+                    log.error("临时文件删除失败，尝试JVM退出时自动删除: {}", filePath);
+                    // 可以设置文件在JVM退出时删除
+                    file.deleteOnExit();
+                } else {
+                    log.debug("临时文件已删除: {}", filePath);
+                }
+            } catch (SecurityException e) {
+                log.error("删除临时文件时没有权限: {}", filePath, e);
+            } catch (Exception e) {
+                log.error("删除临时文件失败: {}", filePath, e);
+            }
         }
     }
 
