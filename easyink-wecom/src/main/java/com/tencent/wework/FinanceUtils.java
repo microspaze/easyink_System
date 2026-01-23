@@ -170,16 +170,16 @@ public class FinanceUtils {
             ExecutorService executor = Executors.newFixedThreadPool(5);
             List<Future<ChatInfoVO>> futures = new ArrayList<>();
             chatdataArr.forEach(data -> {
+                final long currentSeq = data.getSeq(); // 使用final局部变量
                 Future<ChatInfoVO> future = executor.submit(() -> {
                     try {
-                        localSeq.set(data.getSeq());
                         // 解密不同消息类型并转译成实体
                         ChatInfoVO chatInfoVO = decryptChatRecord(sdk, data.getEncrypt_random_key(),
                                 data.getEncrypt_chat_msg(), privateKey, corpId);
                         if (chatInfoVO == null) {
                             return null;
                         }
-                        chatInfoVO.setSeq(localSeq.get());
+                        chatInfoVO.setSeq(currentSeq);
                         return chatInfoVO;
                     } catch (Exception e) {
                         log.warn("解析消息出现异常,corpId:{},e:{}", corpId, ExceptionUtils.getStackTrace(e));
@@ -187,20 +187,31 @@ public class FinanceUtils {
                     return null;
                 });
                 futures.add(future);
+                // 更新最后一条消息的seq
+                localSeq.set(currentSeq);
             });
             
             for (Future<ChatInfoVO> future : futures) {
                 try {
-                    ChatInfoVO chatInfoVO = future.get();
+                    ChatInfoVO chatInfoVO = future.get(TIMEOUT, TimeUnit.SECONDS);
                     if (chatInfoVO != null) {
                         resList.add(chatInfoVO);
                     }
-                } catch (InterruptedException | ExecutionException e) {
+                } catch (InterruptedException | ExecutionException | TimeoutException e) {
                     log.error("处理消息失败", e);
                 }
             }
-
-            executor.shutdown(); // 关闭线程池
+            
+            // 优雅关闭线程池
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
 
             log.info("corpId:{}数据解析完成:------------", corpId);
         }
