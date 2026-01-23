@@ -163,22 +163,44 @@ public class FinanceUtils {
         log.info("corpId:{}开始执行数据解析{}条:------------", corpId, chatdataArr.size());
         AtomicLong localSeq = new AtomicLong(seq);
         if (CollUtil.isNotEmpty(chatdataArr)) {
+            Long sdk = getSdk(corpId);
+            ChatRsaKeyConfig chatRsaKeyConfig = SpringUtils.getBean(ChatRsaKeyConfig.class);
+            String privateKey = chatRsaKeyConfig.getPrivateKey();
+            // 创建线程池（可以全局复用）
+            ExecutorService executor = Executors.newFixedThreadPool(5);
+            List<Future<ChatInfoVO>> futures = new ArrayList<>();
             chatdataArr.forEach(data -> {
-                try {
-                    localSeq.set(data.getSeq());
-                    ChatRsaKeyConfig chatRsaKeyConfig = SpringUtils.getBean(ChatRsaKeyConfig.class);
-                    // 解密不同消息类型并转译成实体
-                    ChatInfoVO chatInfoVO = decryptChatRecord(getSdk(corpId), data.getEncrypt_random_key(),
-                            data.getEncrypt_chat_msg(), chatRsaKeyConfig.getPrivateKey(), corpId);
-                    if (chatInfoVO == null) {
-                        return;
+                Future<ChatInfoVO> future = executor.submit(() -> {
+                    try {
+                        localSeq.set(data.getSeq());
+                        // 解密不同消息类型并转译成实体
+                        ChatInfoVO chatInfoVO = decryptChatRecord(sdk, data.getEncrypt_random_key(),
+                                data.getEncrypt_chat_msg(), privateKey, corpId);
+                        if (chatInfoVO == null) {
+                            return null;
+                        }
+                        chatInfoVO.setSeq(localSeq.get());
+                        return chatInfoVO;
+                    } catch (Exception e) {
+                        log.warn("解析消息出现异常,corpId:{},e:{}", corpId, ExceptionUtils.getStackTrace(e));
                     }
-                    chatInfoVO.setSeq(localSeq.get());
-                    resList.add(chatInfoVO);
-                } catch (Exception e) {
-                    log.warn("解析消息出现异常,corpId:{},e:{}", corpId, ExceptionUtils.getStackTrace(e));
-                }
+                    return null;
+                });
+                futures.add(future);
             });
+            
+            for (Future<ChatInfoVO> future : futures) {
+                try {
+                    ChatInfoVO chatInfoVO = future.get();
+                    if (chatInfoVO != null) {
+                        resList.add(chatInfoVO);
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    log.error("处理消息失败", e);
+                }
+            }
+
+            executor.shutdown(); // 关闭线程池
 
             log.info("corpId:{}数据解析完成:------------", corpId);
         }
