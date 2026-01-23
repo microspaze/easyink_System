@@ -204,12 +204,12 @@ public class FinanceUtils {
             //解密
             Finance.DecryptData(sdk, str, encryptChatMsg, msg);
             String jsonDataStr = Finance.GetContentFromSlice(msg);
+            log.info("数据解析:------------{}", jsonDataStr);
             ChatInfoVO chatInfoVO = JSON.parseObject(jsonDataStr, ChatInfoVO.class);
             String msgType = chatInfoVO.getMsgtype();
             if (StringUtils.isNotEmpty(msgType)) {
                 getSwitchType(chatInfoVO, msgType, corpId);
             }
-            log.info("数据解析:------------{}", JSONObject.toJSONString(chatInfoVO));
             return chatInfoVO;
         } catch (Exception e) {
             log.error("解析密文失败:{}", ExceptionUtils.getStackTrace(e));
