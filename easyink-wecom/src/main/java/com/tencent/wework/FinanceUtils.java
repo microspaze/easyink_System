@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -55,6 +56,22 @@ public class FinanceUtils {
      * 超时时间，单位秒
      */
     private static final long TIMEOUT = 5 * 60L;
+    /**
+     * COS上传最大重试次数
+     */
+    private static int cosUploadMaxRetries = 3;
+
+    /**
+     * COS上传重试间隔(毫秒)
+     */
+    private static long cosUploadRetryInterval = 1000;
+
+    /**
+     * COS上传重试的异常类型
+     */
+    private static List<String> cosUploadRetryableExceptions = Arrays.asList(
+            "IOException", "SocketTimeoutException", "ConnectException"
+    );
 
     private static String downloadWeWorkPath = RuoYiConfig.getDownloadWeWorkPath();
 
@@ -502,10 +519,10 @@ public class FinanceUtils {
             String suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
             StringBuilder cosUrl = new StringBuilder(cosConfig.getCosImgUrlPrefix());
             
-            // 创建临时文件，并使用try-with-resources确保流被正确关闭
+            // 读取临时文件，并使用可重试方法上传COS
             tempFile = new File(filePath, fileName);
-            try (InputStream inputStream = Files.newInputStream(tempFile.toPath())) {
-                String cosFilePath = FileUploadUtils.upload2Cos(inputStream, fileName, suffix, cosConfig);
+            String cosFilePath = cosUploadWithRetry(tempFile, fileName, suffix, cosConfig);
+            if (StringUtils.isNotBlank(cosFilePath)) {
                 cosUrl.append(cosFilePath);
                 data.setAttachment(cosUrl.toString());
             }
@@ -516,6 +533,47 @@ public class FinanceUtils {
                 deleteTempFile(tempFile);
             }
         }
+    }
+
+    //带重试机制的上传方法
+    private static String cosUploadWithRetry(File file, String fileName, String suffix, CosConfig cosConfig) {
+        int retryCount = 0;
+        while (retryCount < cosUploadMaxRetries) {
+            try {
+                try (InputStream inputStream = Files.newInputStream(file.toPath())) {
+                    return FileUploadUtils.upload2Cos(inputStream, fileName, suffix, cosConfig);
+                }
+            } catch (Exception e) {
+                log.warn("COS上传失败, 第{}次重试, fileName: {}, exception: {}", retryCount, fileName, e.getMessage());
+
+                if (retryCount > cosUploadMaxRetries) {
+                    log.error("COS上传达到最大重试次数, 上传失败, fileName: {}", fileName);
+                    break;
+                }
+
+                if (!isRetryableException(e, cosUploadRetryableExceptions)) {
+                    log.warn("不可重试的异常, 停止重试, fileName: {}", fileName);
+                    break;
+                }
+
+                // 等待后重试
+                try {
+                    Thread.sleep(cosUploadRetryInterval * retryCount);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            } finally {
+                retryCount++;
+            }
+        }
+        return null;
+    }
+
+    //判断是否为可重试的异常
+    private static boolean isRetryableException(Exception e, List<String> retryableExceptions) {
+        String exceptionName = e.getClass().getSimpleName();
+        return retryableExceptions.contains(exceptionName) || e instanceof IOException; // 默认重试所有IO异常
     }
 
     //安全删除临时文件
