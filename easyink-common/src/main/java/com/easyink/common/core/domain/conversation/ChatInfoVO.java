@@ -35,8 +35,6 @@ public class ChatInfoVO extends ChatBodyVO {
     private Long seq;
 
     /***/
-    private String voiceid; //音频存档消息
-    private String voipid; //音频共享文档消息
     private Boolean isRevoke;
     private Object fromInfo;
     private Object toListInfo;

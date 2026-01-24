@@ -19,7 +19,6 @@ import com.easyink.common.utils.DateUtils;
 import com.easyink.common.utils.StringUtils;
 import com.easyink.common.utils.file.FileUploadUtils;
 import com.easyink.common.utils.spring.SpringUtils;
-import com.easyink.common.utils.uuid.IdUtils;
 import com.easyink.common.utils.wecom.RsaUtil;
 import com.easyink.wecom.domain.WeCustomer;
 import com.easyink.wecom.service.WeCustomerService;
@@ -52,11 +51,6 @@ public class FinanceUtils {
      * NewSdk返回的sdk指针map
      */
     private static ConcurrentHashMap<String, Long> sdkmap = new ConcurrentHashMap<>();
-
-    /**
-     * COS已上传资源链接map
-     */
-    private static ConcurrentHashMap<String, String> cosUrlMap = new ConcurrentHashMap<>();
     /**
      * 超时时间，单位秒
      */
@@ -90,6 +84,7 @@ public class FinanceUtils {
     private static String downloadWeWorkPath = RuoYiConfig.getDownloadWeWorkPath();
 
     private static final String CONTENT = "content";
+    private static final String UPLOADING = "uploading";
 
     private FinanceUtils() {
     }
@@ -346,8 +341,14 @@ public class FinanceUtils {
         if (meetingVoiceCall == null) {
             meetingVoiceCall = JSON.parseObject(realData.getContent().toString(), MeetingVoiceCallVO.class);
         }
-        for (MeetingVoiceCallVO.DemofiledataVO data : meetingVoiceCall.getDemofiledata()) {
-            getPath(data, msgType, data.getFilename(), meetingVoiceCall.getSdkfileid(), corpId);
+        List<MeetingVoiceCallVO.DemofiledataVO> demofiledataVOList = meetingVoiceCall.getDemofiledata();
+        if (CollUtil.isNotEmpty(demofiledataVOList)) {
+            for (MeetingVoiceCallVO.DemofiledataVO data : demofiledataVOList) {
+                getPath(data, msgType, data.getFilename(), meetingVoiceCall.getSdkfileid(), corpId);
+            }
+        } else {
+            String fileName = realData.getVoiceid() + ".mp3";
+            getPath(meetingVoiceCall, msgType, fileName, meetingVoiceCall.getSdkfileid(), corpId);
         }
         // 同步attachment字段
         resetContent(realData, meetingVoiceCall);
@@ -563,12 +564,28 @@ public class FinanceUtils {
         String filePath = getFilePath(msgType);
         File tempFile = null;
         try {
-            String cosUploadUrl = cosUrlMap.get(fileName);
+            RedisCache redisCache = SpringUtils.getBean(RedisCache.class);
+            String cosUploadUrl = redisCache.getCacheObject(fileName);
             if (StringUtils.isNotEmpty(cosUploadUrl)) {
-                data.setAttachment(cosUploadUrl);
-                return true;
+                //并行处理消息可能存在同时上传相同文件情况，仅允许其中一个线程进行上传，其他线程进行等待最多2分钟
+                if (cosUploadUrl.equals(UPLOADING)) {
+                    int waitedTimes = 0;
+                    while (waitedTimes < 20) {
+                        Thread.sleep(6000);
+                        waitedTimes++;
+                        cosUploadUrl = redisCache.getCacheObject(fileName);
+                        if (!cosUploadUrl.equals(UPLOADING)) {
+                            data.setAttachment(cosUploadUrl);
+                            return true;
+                        }
+                    }
+                } else {
+                    data.setAttachment(cosUploadUrl);
+                    return true;
+                }
             }
             
+            redisCache.setCacheObject(fileName, UPLOADING, 2 * 60, TimeUnit.SECONDS);
             tempFile = new File(filePath, fileName);
             if (!mediaDownloadWithRetry(tempFile, filePath, fileName, sdkfileid, corpId)) {
                 return result;
@@ -584,7 +601,7 @@ public class FinanceUtils {
                 cosUrl.append(cosFilePath);
                 cosUploadUrl = cosUrl.toString();
                 data.setAttachment(cosUploadUrl);
-                cosUrlMap.put(fileName, cosUploadUrl);
+                redisCache.setCacheObject(fileName, cosUploadUrl);
                 result = true;
             }
         } catch (Exception e) {
@@ -630,11 +647,15 @@ public class FinanceUtils {
 
     //带重试机制的上传方法
     private static String cosUploadWithRetry(File file, String fileName, String suffix, CosConfig cosConfig) {
+        String cosFileName = "";
         int retryCount = 0;
         while (retryCount < cosUploadMaxRetries && file.exists()) {
             try {
+                if (StringUtils.isEmpty(cosFileName)) {
+                    cosFileName = (file.length() + 1024 * 1024 - 1) / (1024 * 1024) + "m-" + fileName;
+                }
                 try (InputStream inputStream = Files.newInputStream(file.toPath())) {
-                    return FileUploadUtils.upload2Cos(inputStream, fileName, suffix, cosConfig);
+                    return FileUploadUtils.upload2Cos(inputStream, cosFileName, suffix, cosConfig);
                 }
             } catch (Exception e) {
                 log.warn("COS上传失败, 第{}次重试, fileName: {}, exception: {}", retryCount, fileName, e.getMessage());
@@ -660,7 +681,7 @@ public class FinanceUtils {
                 retryCount++;
             }
         }
-        return null;
+        return cosFileName;
     }
 
     //判断是否为可重试的异常

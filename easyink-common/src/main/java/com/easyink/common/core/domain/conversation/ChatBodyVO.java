@@ -1,5 +1,6 @@
 package com.easyink.common.core.domain.conversation;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.easyink.common.core.domain.conversation.msgtype.*;
 import lombok.Data;
 
@@ -24,6 +25,7 @@ public class ChatBodyVO {
     private MixedVO mixed;
     private RevokeVO revoke;
     private CardVO card;
+    @JSONField(name = "meeting_voice_call")
     private MeetingVoiceCallVO meetingVoiceCall;
     private ChatRecordVO chatRecord;
     /**
@@ -31,8 +33,9 @@ public class ChatBodyVO {
      * 可对应各种类型消息体数据，如text,image等等
      */
     private Object content;
-
-
+    private String voiceid; //音频存档消息
+    private String voipid; //音频共享文档消息
+    
     /**
      * 默认实现或则为实现的
      */

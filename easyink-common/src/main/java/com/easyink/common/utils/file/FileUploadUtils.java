@@ -269,17 +269,10 @@ public class FileUploadUtils {
      * @throws InvalidExtensionException      文件后缀名非法
      */
     private static String upload2Cos(InputStream inputStream, String originFileName, String fileExtension, String[] allowedExtension, CosConfig cosConfig) throws FileSizeLimitExceededException, InvalidExtensionException {
-
-        String fileName = DateUtils.datePath() + WeConstans.SLASH + originFileName;
         if (!isAllowedExtension(fileExtension, allowedExtension)) {
-            throw new InvalidExtensionException.InvalidImageExtensionException(allowedExtension, fileExtension, fileName);
+            throw new InvalidExtensionException.InvalidImageExtensionException(allowedExtension, fileExtension, originFileName);
         }
-        COSClient cosClient = getCosClient(cosConfig);
-        ObjectMetadata objectMetadata = new ObjectMetadata();
-        PutObjectRequest putObjectRequest = new PutObjectRequest(cosConfig.getBucketName(), fileName, inputStream, objectMetadata);
-        cosClient.putObject(putObjectRequest);
-        cosClient.shutdown();
-        return fileName;
+        return reUpload2CosFileByName(inputStream, originFileName, cosConfig);
     }
 
     /**
