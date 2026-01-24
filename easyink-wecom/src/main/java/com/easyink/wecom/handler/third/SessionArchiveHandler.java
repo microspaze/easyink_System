@@ -8,6 +8,7 @@ import com.easyink.common.core.domain.conversation.ChatInfoVO;
 import com.easyink.common.core.domain.conversation.msgtype.*;
 import com.easyink.common.core.domain.entity.WeCorpAccount;
 import com.easyink.common.core.elasticsearch.ElasticSearch;
+import com.easyink.common.core.redis.RedisCache;
 import com.easyink.common.exception.CustomException;
 import com.easyink.common.utils.poi.ExcelUtil;
 import com.easyink.common.utils.spring.SpringUtils;
@@ -36,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -53,7 +55,8 @@ import java.util.stream.Collectors;
 @Component
 @AllArgsConstructor
 public class SessionArchiveHandler {
-
+    @Autowired
+    private RedisCache redisCache;
     private final WeUpdateIDClient weUpdateIDClient;
     private final WeExternalUserIdMappingService weExternalUserIdMappingService;
     private final WeUserIdMappingService weUserIdMappingService;
@@ -120,7 +123,7 @@ public class SessionArchiveHandler {
                         chatInfoVO.getFile().setFileext(defaultFileSuffix);
                     }
                 }
-                FinanceUtils.getSwitchType(chatInfoVO, chatInfoVO.getMsgtype(), corpId);
+                FinanceUtils.getSwitchType(chatInfoVO, chatInfoVO.getMsgtype(), corpId, redisCache);
                 chatMessageList.add(chatInfoVO);
             }
 
