@@ -52,6 +52,11 @@ public class FinanceUtils {
      * NewSdk返回的sdk指针map
      */
     private static ConcurrentHashMap<String, Long> sdkmap = new ConcurrentHashMap<>();
+
+    /**
+     * COS已上传资源链接map
+     */
+    private static ConcurrentHashMap<String, String> cosUrlMap = new ConcurrentHashMap<>();
     /**
      * 超时时间，单位秒
      */
@@ -404,7 +409,8 @@ public class FinanceUtils {
             // ==null则为混合消息的file类型
             file = JSON.parseObject(realData.getContent().toString(), FileVO.class);
         }
-        getPath(file, msgType, file.getFilename(), file.getSdkfileid(), corpId);
+        String fileName = file.getMd5sum() + file.getFileext();
+        getPath(file, msgType, fileName, file.getSdkfileid(), corpId);
         // 同步attachment字段
         resetContent(realData, file);
     }
@@ -441,7 +447,7 @@ public class FinanceUtils {
         if (image == null) {
             image = JSON.parseObject(realData.getContent().toString(), ImageVO.class);
         }
-        String fileName = IdUtils.simpleUUID() + ".jpg";
+        String fileName = image.getMd5sum() + ".jpg";
         getPath(image, msgType, fileName, image.getSdkfileid(), corpId);
         // 同步attachment字段
         resetContent(realData, image);
@@ -459,7 +465,7 @@ public class FinanceUtils {
         if (voice == null) {
             voice = JSON.parseObject(realData.getContent().toString(), VoiceVO.class);
         }
-        String fileName = IdUtils.simpleUUID() + ".amr";
+        String fileName = voice.getMd5sum() + ".amr";
         getPath(voice, msgType, fileName, voice.getSdkfileid(), corpId);
         // 同步attachment字段
         resetContent(realData, voice);
@@ -477,7 +483,7 @@ public class FinanceUtils {
         if (video == null) {
             video = JSON.parseObject(realData.getContent().toString(), VideoVO.class);
         }
-        String fileName = IdUtils.simpleUUID() + ".mp4";
+        String fileName = video.getMd5sum() + ".mp4";
         getPath(video, msgType, fileName, video.getSdkfileid(), corpId);
         // 同步attachment字段
         resetContent(realData, video);
@@ -497,13 +503,14 @@ public class FinanceUtils {
         if (emotion == null) {
             emotion = JSON.parseObject(realData.getContent().toString(), EmotionVO.class);
         }
+        String md5sum = emotion.getMd5sum();
         Integer type = emotion.getType();
         switch (type) {
             case 1:
-                fileName = IdUtils.simpleUUID() + ".gif";
+                fileName = md5sum + ".gif";
                 break;
             case 2:
-                fileName = IdUtils.simpleUUID() + ".png";
+                fileName = md5sum + ".png";
                 break;
             default:
                 break;
@@ -556,6 +563,12 @@ public class FinanceUtils {
         String filePath = getFilePath(msgType);
         File tempFile = null;
         try {
+            String cosUploadUrl = cosUrlMap.get(fileName);
+            if (StringUtils.isNotEmpty(cosUploadUrl)) {
+                data.setAttachment(cosUploadUrl);
+                return true;
+            }
+            
             tempFile = new File(filePath, fileName);
             if (!mediaDownloadWithRetry(tempFile, filePath, fileName, sdkfileid, corpId)) {
                 return result;
@@ -569,7 +582,9 @@ public class FinanceUtils {
             String cosFilePath = cosUploadWithRetry(tempFile, fileName, suffix, cosConfig);
             if (StringUtils.isNotBlank(cosFilePath)) {
                 cosUrl.append(cosFilePath);
-                data.setAttachment(cosUrl.toString());
+                cosUploadUrl = cosUrl.toString();
+                data.setAttachment(cosUploadUrl);
+                cosUrlMap.put(fileName, cosUploadUrl);
                 result = true;
             }
         } catch (Exception e) {
