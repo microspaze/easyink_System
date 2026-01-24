@@ -74,11 +74,6 @@ public class FinanceUtils {
      * COS上传重试间隔(毫秒)
      */
     private static long cosUploadRetryInterval = 1000;
-
-    /**
-     * COS上传线程池
-     */
-    private static final ExecutorService COS_UPLOAD_EXECUTOR = Executors.newFixedThreadPool(10);
     
     /**
      * COS上传重试的异常类型
@@ -167,7 +162,7 @@ public class FinanceUtils {
             ChatRsaKeyConfig chatRsaKeyConfig = SpringUtils.getBean(ChatRsaKeyConfig.class);
             String privateKey = chatRsaKeyConfig.getPrivateKey();
             // 创建线程池（可以全局复用）
-            ExecutorService executor = Executors.newFixedThreadPool(5);
+            ExecutorService executor = Executors.newFixedThreadPool(10);
             List<Future<ChatInfoVO>> futures = new ArrayList<>();
             chatdataArr.forEach(data -> {
                 final long currentSeq = data.getSeq(); // 使用final局部变量
@@ -223,19 +218,19 @@ public class FinanceUtils {
 
     /**
      * @param sdk             初始化时候获取到的值
-     * @param ncryptRandomKey 企业微信返回的随机密钥
+     * @param decryptRandomKey 企业微信返回的随机密钥
      * @param encryptChatMsg  企业微信返回的单条记录的密文消息
      * @param privateKey      企业微信管理后台设置的私钥,!!!版本记得对应上!!!
      * @param corpId          企业id
      * @return JSONObject 返回不同格式的聊天数据,格式有二十来种
      * 详情请看官网 https://open.work.weixin.qq.com/api/doc/90000/90135/91774#%E6%B6%88%E6%81%AF%E6%A0%BC%E5%BC%8F
      */
-    private static ChatInfoVO decryptChatRecord(Long sdk, String ncryptRandomKey, String encryptChatMsg, String privateKey, String corpId) {
+    private static ChatInfoVO decryptChatRecord(Long sdk, String decryptRandomKey, String encryptChatMsg, String privateKey, String corpId) {
         Long msg = null;
         try {
             //获取私钥
             PrivateKey privateKeyObj = RsaUtil.getPrivateKey(privateKey);
-            String str = RsaUtil.decryptRSA(ncryptRandomKey, privateKeyObj);
+            String str = RsaUtil.decryptRSA(decryptRandomKey, privateKeyObj);
             //初始化参数slice
             msg = Finance.NewSlice();
 
@@ -246,15 +241,7 @@ public class FinanceUtils {
             ChatInfoVO chatInfoVO = JSON.parseObject(jsonDataStr, ChatInfoVO.class);
             String msgType = chatInfoVO.getMsgtype();
             if (StringUtils.isNotEmpty(msgType)) {
-                List<Future<Boolean>> uploadFutures = new ArrayList<>(getSwitchType(chatInfoVO, msgType, corpId));
-                // 等待所有上传任务完成
-                for (Future<Boolean> future : uploadFutures) {
-                    try {
-                        future.get(); // 等待上传完成
-                    } catch (InterruptedException | ExecutionException e) {
-                        log.error("附件上传失败", e);
-                    }
-                }
+                getSwitchType(chatInfoVO, msgType, corpId);
             }
             return chatInfoVO;
         } catch (Exception e) {
@@ -275,8 +262,7 @@ public class FinanceUtils {
      * @param msgType  消息类型
      * @param corpId   企业id
      */
-    public static List<Future<Boolean>> getSwitchType(ChatBodyVO realData, String msgType, String corpId) {
-        List<Future<Boolean>> futures = new ArrayList<>();
+    public static void getSwitchType(ChatBodyVO realData, String msgType, String corpId) {
         switch (msgType) {
             case "ChatRecordText":
             case "text":
@@ -284,32 +270,32 @@ public class FinanceUtils {
                 break;
             case "ChatRecordImage":
             case "image":
-                futures.add(setMediaImageData(realData, msgType, corpId));
+                setMediaImageData(realData, msgType, corpId);
                 break;
             case "voice":
-                futures.add(setMediaVoiceData(realData, msgType, corpId));
+                setMediaVoiceData(realData, msgType, corpId);
                 break;
             case "ChatRecordVideo":
             case "video":
-                futures.add(setMediaVideoData(realData, msgType, corpId));
+                setMediaVideoData(realData, msgType, corpId);
                 break;
             case "emotion":
-                futures.add(setMediaEmotionData(realData, msgType, corpId));
+                setMediaEmotionData(realData, msgType, corpId);
                 break;
             case "ChatRecordFile":
             case "file":
-                futures.add(setMediaFileData(realData, msgType, corpId));
+                setMediaFileData(realData, msgType, corpId);
                 break;
             case "card":
                 cardMsgHandler(realData, corpId);
                 break;
             case "ChatRecordMixed":
             case "mixed":
-                futures.addAll(setMediaMixedData(realData, corpId));
+                setMediaMixedData(realData, corpId);
                 break;
             case "meeting_voice_call":
             case "voip_doc_share":
-                futures.addAll(setMediaMeetingVoiceCallData(realData, msgType, corpId));
+                setMediaMeetingVoiceCallData(realData, msgType, corpId);
                 break;
             case "chatrecord":
                 chatRecordMsgHandler(realData, corpId);
@@ -317,7 +303,6 @@ public class FinanceUtils {
             default:
                 break;
         }
-        return futures;
     }
 
     /**
@@ -351,18 +336,16 @@ public class FinanceUtils {
      * @param msgType  消息类型
      * @param corpId   企业id
      */
-    private static List<Future<Boolean>> setMediaMeetingVoiceCallData(ChatBodyVO realData, String msgType, String corpId) {
+    private static void setMediaMeetingVoiceCallData(ChatBodyVO realData, String msgType, String corpId) {
         MeetingVoiceCallVO meetingVoiceCall = realData.getMeetingVoiceCall();
         if (meetingVoiceCall == null) {
             meetingVoiceCall = JSON.parseObject(realData.getContent().toString(), MeetingVoiceCallVO.class);
         }
-        List<Future<Boolean>> futures = new ArrayList<>();
         for (MeetingVoiceCallVO.DemofiledataVO data : meetingVoiceCall.getDemofiledata()) {
-            futures.add(getPath(data, msgType, data.getFilename(), meetingVoiceCall.getSdkfileid(), corpId));
+            getPath(data, msgType, data.getFilename(), meetingVoiceCall.getSdkfileid(), corpId);
         }
         // 同步attachment字段
         resetContent(realData, meetingVoiceCall);
-        return futures;
     }
 
     /**
@@ -415,16 +398,15 @@ public class FinanceUtils {
      * @param msgType  消息类型
      * @param corpId   企业id
      */
-    private static Future<Boolean> setMediaFileData(ChatBodyVO realData, String msgType, String corpId) {
+    private static void setMediaFileData(ChatBodyVO realData, String msgType, String corpId) {
         FileVO file = realData.getFile();
         if (file == null) {
             // ==null则为混合消息的file类型
             file = JSON.parseObject(realData.getContent().toString(), FileVO.class);
         }
-        Future<Boolean> future = getPath(file, msgType, file.getFilename(), file.getSdkfileid(), corpId);
+        getPath(file, msgType, file.getFilename(), file.getSdkfileid(), corpId);
         // 同步attachment字段
         resetContent(realData, file);
-        return future;
     }
 
     /**
@@ -433,17 +415,15 @@ public class FinanceUtils {
      * @param realData 消息体
      * @param corpId   企业id
      */
-    private static List<Future<Boolean>> setMediaMixedData(ChatBodyVO realData, String corpId) {
+    private static void setMediaMixedData(ChatBodyVO realData, String corpId) {
         MixedVO mixed = realData.getMixed();
         if (mixed == null) {
             mixed = JSON.parseObject(realData.getContent().toString(), MixedVO.class);
         }
         List<MixedVO.ItemContext> items = mixed.getItem();
-        List<Future<Boolean>> futures = new ArrayList<>();
-        items.forEach(item -> futures.addAll(getSwitchType(item, item.getType(), corpId)));
+        items.forEach(item -> getSwitchType(item, item.getType(), corpId));
         // 同步attachment字段
         resetContent(realData, mixed);
-        return futures;
     }
 
 
@@ -454,7 +434,7 @@ public class FinanceUtils {
      * @param msgType  消息类型
      * @param corpId   企业id
      */
-    private static Future<Boolean> setMediaImageData(ChatBodyVO realData, String msgType, String corpId) {
+    private static void setMediaImageData(ChatBodyVO realData, String msgType, String corpId) {
         // 不为null，则外层为该消息类型
         ImageVO image = realData.getImage();
         // 为null，则外层为mixed消息或者chatrecord消息，消息体存在content中
@@ -462,10 +442,9 @@ public class FinanceUtils {
             image = JSON.parseObject(realData.getContent().toString(), ImageVO.class);
         }
         String fileName = IdUtils.simpleUUID() + ".jpg";
-        Future<Boolean> future = getPath(image, msgType, fileName, image.getSdkfileid(), corpId);
+        getPath(image, msgType, fileName, image.getSdkfileid(), corpId);
         // 同步attachment字段
         resetContent(realData, image);
-        return future;
     }
 
     /**
@@ -475,16 +454,15 @@ public class FinanceUtils {
      * @param msgType
      * @param corpId
      */
-    private static Future<Boolean> setMediaVoiceData(ChatBodyVO realData, String msgType, String corpId) {
+    private static void setMediaVoiceData(ChatBodyVO realData, String msgType, String corpId) {
         VoiceVO voice = realData.getVoice();
         if (voice == null) {
             voice = JSON.parseObject(realData.getContent().toString(), VoiceVO.class);
         }
         String fileName = IdUtils.simpleUUID() + ".amr";
-        Future<Boolean> future = getPath(voice, msgType, fileName, voice.getSdkfileid(), corpId);
+        getPath(voice, msgType, fileName, voice.getSdkfileid(), corpId);
         // 同步attachment字段
         resetContent(realData, voice);
-        return future;
     }
 
     /**
@@ -494,16 +472,15 @@ public class FinanceUtils {
      * @param msgType
      * @param corpId
      */
-    private static Future<Boolean> setMediaVideoData(ChatBodyVO realData, String msgType, String corpId) {
+    private static void setMediaVideoData(ChatBodyVO realData, String msgType, String corpId) {
         VideoVO video = realData.getVideo();
         if (video == null) {
             video = JSON.parseObject(realData.getContent().toString(), VideoVO.class);
         }
         String fileName = IdUtils.simpleUUID() + ".mp4";
-        Future<Boolean> future = getPath(video, msgType, fileName, video.getSdkfileid(), corpId);
+        getPath(video, msgType, fileName, video.getSdkfileid(), corpId);
         // 同步attachment字段
         resetContent(realData, video);
-        return future;
     }
 
     /**
@@ -513,7 +490,7 @@ public class FinanceUtils {
      * @param msgType  消息类型
      * @param corpId   企业id
      */
-    private static Future<Boolean> setMediaEmotionData(ChatBodyVO realData, String msgType, String corpId) {
+    private static void setMediaEmotionData(ChatBodyVO realData, String msgType, String corpId) {
 
         String fileName = "";
         EmotionVO emotion = realData.getEmotion();
@@ -531,10 +508,9 @@ public class FinanceUtils {
             default:
                 break;
         }
-        Future<Boolean> future = getPath(emotion, msgType, fileName, emotion.getSdkfileid(), corpId);
+        getPath(emotion, msgType, fileName, emotion.getSdkfileid(), corpId);
         // 同步attachment字段
         resetContent(realData, emotion);
-        return future;
     }
 
 
@@ -575,37 +551,35 @@ public class FinanceUtils {
     }
 
     //云存储
-    private static Future<Boolean> getPath(AttachmentBaseVO data, String msgType, String fileName, String sdkfileid, String corpId) {
-        return COS_UPLOAD_EXECUTOR.submit(() -> {
-            boolean result = false;
-            String filePath = getFilePath(msgType);
-            File tempFile = null;
-            try {
-                tempFile = new File(filePath, fileName);
-                if (!mediaDownloadWithRetry(tempFile, filePath, fileName, sdkfileid, corpId)) {
-                    return result;
-                }
-                RuoYiConfig ruoyiConfig = SpringUtils.getBean(RuoYiConfig.class);
-                CosConfig cosConfig = ruoyiConfig.getFile().getCos();
-                String suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
-                StringBuilder cosUrl = new StringBuilder(cosConfig.getCosImgUrlPrefix());
-
-                // 读取临时文件，并使用可重试方法上传COS
-                String cosFilePath = cosUploadWithRetry(tempFile, fileName, suffix, cosConfig);
-                if (StringUtils.isNotBlank(cosFilePath)) {
-                    cosUrl.append(cosFilePath);
-                    data.setAttachment(cosUrl.toString());
-                    result = true;
-                }
-            } catch (Exception e) {
-                log.error("getPath Exception ex:【{}】", ExceptionUtils.getStackTrace(e));
-            } finally {
-                if (tempFile != null && tempFile.exists()) {
-                    deleteTempFile(tempFile);
-                }
+    private static Boolean getPath(AttachmentBaseVO data, String msgType, String fileName, String sdkfileid, String corpId) {
+        boolean result = false;
+        String filePath = getFilePath(msgType);
+        File tempFile = null;
+        try {
+            tempFile = new File(filePath, fileName);
+            if (!mediaDownloadWithRetry(tempFile, filePath, fileName, sdkfileid, corpId)) {
+                return result;
             }
-            return result;
-        });
+            RuoYiConfig ruoyiConfig = SpringUtils.getBean(RuoYiConfig.class);
+            CosConfig cosConfig = ruoyiConfig.getFile().getCos();
+            String suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
+            StringBuilder cosUrl = new StringBuilder(cosConfig.getCosImgUrlPrefix());
+
+            // 读取临时文件，并使用可重试方法上传COS
+            String cosFilePath = cosUploadWithRetry(tempFile, fileName, suffix, cosConfig);
+            if (StringUtils.isNotBlank(cosFilePath)) {
+                cosUrl.append(cosFilePath);
+                data.setAttachment(cosUrl.toString());
+                result = true;
+            }
+        } catch (Exception e) {
+            log.error("getPath Exception ex:【{}】", ExceptionUtils.getStackTrace(e));
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                deleteTempFile(tempFile);
+            }
+        }
+        return result;
     }
 
     //带重试机制的上传方法
