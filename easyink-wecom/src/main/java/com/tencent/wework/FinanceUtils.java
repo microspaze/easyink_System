@@ -170,7 +170,7 @@ public class FinanceUtils {
                     try {
                         // 解密不同消息类型并转译成实体
                         ChatInfoVO chatInfoVO = decryptChatRecord(sdk, data.getEncrypt_random_key(),
-                                data.getEncrypt_chat_msg(), privateKey, corpId);
+                                data.getEncrypt_chat_msg(), privateKey, corpId, redisCache);
                         if (chatInfoVO == null) {
                             return null;
                         }
@@ -225,7 +225,7 @@ public class FinanceUtils {
      * @return JSONObject 返回不同格式的聊天数据,格式有二十来种
      * 详情请看官网 https://open.work.weixin.qq.com/api/doc/90000/90135/91774#%E6%B6%88%E6%81%AF%E6%A0%BC%E5%BC%8F
      */
-    private static ChatInfoVO decryptChatRecord(Long sdk, String decryptRandomKey, String encryptChatMsg, String privateKey, String corpId) {
+    private static ChatInfoVO decryptChatRecord(Long sdk, String decryptRandomKey, String encryptChatMsg, String privateKey, String corpId, RedisCache redisCache) {
         Long msg = null;
         try {
             //获取私钥
@@ -241,7 +241,7 @@ public class FinanceUtils {
             ChatInfoVO chatInfoVO = JSON.parseObject(jsonDataStr, ChatInfoVO.class);
             String msgType = chatInfoVO.getMsgtype();
             if (StringUtils.isNotEmpty(msgType)) {
-                getSwitchType(chatInfoVO, msgType, corpId);
+                getSwitchType(chatInfoVO, msgType, corpId, redisCache);
             }
             return chatInfoVO;
         } catch (Exception e) {
@@ -262,7 +262,7 @@ public class FinanceUtils {
      * @param msgType  消息类型
      * @param corpId   企业id
      */
-    public static void getSwitchType(ChatBodyVO realData, String msgType, String corpId) {
+    public static void getSwitchType(ChatBodyVO realData, String msgType, String corpId, RedisCache redisCache) {
         switch (msgType) {
             case "ChatRecordText":
             case "text":
@@ -270,35 +270,35 @@ public class FinanceUtils {
                 break;
             case "ChatRecordImage":
             case "image":
-                setMediaImageData(realData, msgType, corpId);
+                setMediaImageData(realData, msgType, corpId, redisCache);
                 break;
             case "voice":
-                setMediaVoiceData(realData, msgType, corpId);
+                setMediaVoiceData(realData, msgType, corpId, redisCache);
                 break;
             case "ChatRecordVideo":
             case "video":
-                setMediaVideoData(realData, msgType, corpId);
+                setMediaVideoData(realData, msgType, corpId, redisCache);
                 break;
             case "emotion":
-                setMediaEmotionData(realData, msgType, corpId);
+                setMediaEmotionData(realData, msgType, corpId, redisCache);
                 break;
             case "ChatRecordFile":
             case "file":
-                setMediaFileData(realData, msgType, corpId);
+                setMediaFileData(realData, msgType, corpId, redisCache);
                 break;
             case "card":
                 cardMsgHandler(realData, corpId);
                 break;
             case "ChatRecordMixed":
             case "mixed":
-                setMediaMixedData(realData, corpId);
+                setMediaMixedData(realData, corpId, redisCache);
                 break;
             case "meeting_voice_call":
             case "voip_doc_share":
-                setMediaMeetingVoiceCallData(realData, msgType, corpId);
+                setMediaMeetingVoiceCallData(realData, msgType, corpId, redisCache);
                 break;
             case "chatrecord":
-                chatRecordMsgHandler(realData, corpId);
+                chatRecordMsgHandler(realData, corpId, redisCache);
                 break;
             default:
                 break;
@@ -311,7 +311,7 @@ public class FinanceUtils {
      * @param realData 消息体
      * @param corpId   企业id
      */
-    private static void chatRecordMsgHandler(ChatBodyVO realData, String corpId) {
+    private static void chatRecordMsgHandler(ChatBodyVO realData, String corpId, RedisCache redisCache) {
         ChatRecordVO chatRecord = realData.getChatRecord();
         if (chatRecord == null) {
             chatRecord = JSON.parseObject(realData.getContent().toString(), ChatRecordVO.class);
@@ -322,7 +322,7 @@ public class FinanceUtils {
         List<ChatRecordVO.ChatRecordItem> items = chatRecord.getItem();
         if (CollectionUtils.isNotEmpty(items)) {
             for (ChatRecordVO.ChatRecordItem chatRecordItem : items) {
-                getSwitchType(chatRecordItem, chatRecordItem.getType(), corpId);
+                getSwitchType(chatRecordItem, chatRecordItem.getType(), corpId, redisCache);
             }
         }
         // 同步attachment字段
@@ -336,7 +336,7 @@ public class FinanceUtils {
      * @param msgType  消息类型
      * @param corpId   企业id
      */
-    private static void setMediaMeetingVoiceCallData(ChatBodyVO realData, String msgType, String corpId) {
+    private static void setMediaMeetingVoiceCallData(ChatBodyVO realData, String msgType, String corpId, RedisCache redisCache) {
         MeetingVoiceCallVO meetingVoiceCall = realData.getMeetingVoiceCall();
         if (meetingVoiceCall == null) {
             meetingVoiceCall = JSON.parseObject(realData.getContent().toString(), MeetingVoiceCallVO.class);
@@ -344,11 +344,11 @@ public class FinanceUtils {
         List<MeetingVoiceCallVO.DemofiledataVO> demofiledataVOList = meetingVoiceCall.getDemofiledata();
         if (CollUtil.isNotEmpty(demofiledataVOList)) {
             for (MeetingVoiceCallVO.DemofiledataVO data : demofiledataVOList) {
-                getPath(data, msgType, data.getFilename(), meetingVoiceCall.getSdkfileid(), corpId);
+                getPath(data, msgType, data.getFilename(), meetingVoiceCall.getSdkfileid(), corpId, redisCache);
             }
         } else {
             String fileName = realData.getVoiceid() + ".mp3";
-            getPath(meetingVoiceCall, msgType, fileName, meetingVoiceCall.getSdkfileid(), corpId);
+            getPath(meetingVoiceCall, msgType, fileName, meetingVoiceCall.getSdkfileid(), corpId, redisCache);
         }
         // 同步attachment字段
         resetContent(realData, meetingVoiceCall);
@@ -404,14 +404,14 @@ public class FinanceUtils {
      * @param msgType  消息类型
      * @param corpId   企业id
      */
-    private static void setMediaFileData(ChatBodyVO realData, String msgType, String corpId) {
+    private static void setMediaFileData(ChatBodyVO realData, String msgType, String corpId, RedisCache redisCache) {
         FileVO file = realData.getFile();
         if (file == null) {
             // ==null则为混合消息的file类型
             file = JSON.parseObject(realData.getContent().toString(), FileVO.class);
         }
         String fileName = file.getMd5sum() + file.getFileext();
-        getPath(file, msgType, fileName, file.getSdkfileid(), corpId);
+        getPath(file, msgType, fileName, file.getSdkfileid(), corpId, redisCache);
         // 同步attachment字段
         resetContent(realData, file);
     }
@@ -422,13 +422,13 @@ public class FinanceUtils {
      * @param realData 消息体
      * @param corpId   企业id
      */
-    private static void setMediaMixedData(ChatBodyVO realData, String corpId) {
+    private static void setMediaMixedData(ChatBodyVO realData, String corpId, RedisCache redisCache) {
         MixedVO mixed = realData.getMixed();
         if (mixed == null) {
             mixed = JSON.parseObject(realData.getContent().toString(), MixedVO.class);
         }
         List<MixedVO.ItemContext> items = mixed.getItem();
-        items.forEach(item -> getSwitchType(item, item.getType(), corpId));
+        items.forEach(item -> getSwitchType(item, item.getType(), corpId, redisCache));
         // 同步attachment字段
         resetContent(realData, mixed);
     }
@@ -441,7 +441,7 @@ public class FinanceUtils {
      * @param msgType  消息类型
      * @param corpId   企业id
      */
-    private static void setMediaImageData(ChatBodyVO realData, String msgType, String corpId) {
+    private static void setMediaImageData(ChatBodyVO realData, String msgType, String corpId, RedisCache redisCache) {
         // 不为null，则外层为该消息类型
         ImageVO image = realData.getImage();
         // 为null，则外层为mixed消息或者chatrecord消息，消息体存在content中
@@ -449,7 +449,7 @@ public class FinanceUtils {
             image = JSON.parseObject(realData.getContent().toString(), ImageVO.class);
         }
         String fileName = image.getMd5sum() + ".jpg";
-        getPath(image, msgType, fileName, image.getSdkfileid(), corpId);
+        getPath(image, msgType, fileName, image.getSdkfileid(), corpId, redisCache);
         // 同步attachment字段
         resetContent(realData, image);
     }
@@ -461,13 +461,13 @@ public class FinanceUtils {
      * @param msgType
      * @param corpId
      */
-    private static void setMediaVoiceData(ChatBodyVO realData, String msgType, String corpId) {
+    private static void setMediaVoiceData(ChatBodyVO realData, String msgType, String corpId, RedisCache redisCache) {
         VoiceVO voice = realData.getVoice();
         if (voice == null) {
             voice = JSON.parseObject(realData.getContent().toString(), VoiceVO.class);
         }
         String fileName = voice.getMd5sum() + ".amr";
-        getPath(voice, msgType, fileName, voice.getSdkfileid(), corpId);
+        getPath(voice, msgType, fileName, voice.getSdkfileid(), corpId, redisCache);
         // 同步attachment字段
         resetContent(realData, voice);
     }
@@ -479,13 +479,13 @@ public class FinanceUtils {
      * @param msgType
      * @param corpId
      */
-    private static void setMediaVideoData(ChatBodyVO realData, String msgType, String corpId) {
+    private static void setMediaVideoData(ChatBodyVO realData, String msgType, String corpId, RedisCache redisCache) {
         VideoVO video = realData.getVideo();
         if (video == null) {
             video = JSON.parseObject(realData.getContent().toString(), VideoVO.class);
         }
         String fileName = video.getMd5sum() + ".mp4";
-        getPath(video, msgType, fileName, video.getSdkfileid(), corpId);
+        getPath(video, msgType, fileName, video.getSdkfileid(), corpId, redisCache);
         // 同步attachment字段
         resetContent(realData, video);
     }
@@ -497,7 +497,7 @@ public class FinanceUtils {
      * @param msgType  消息类型
      * @param corpId   企业id
      */
-    private static void setMediaEmotionData(ChatBodyVO realData, String msgType, String corpId) {
+    private static void setMediaEmotionData(ChatBodyVO realData, String msgType, String corpId, RedisCache redisCache) {
 
         String fileName = "";
         EmotionVO emotion = realData.getEmotion();
@@ -516,7 +516,7 @@ public class FinanceUtils {
             default:
                 break;
         }
-        getPath(emotion, msgType, fileName, emotion.getSdkfileid(), corpId);
+        getPath(emotion, msgType, fileName, emotion.getSdkfileid(), corpId, redisCache);
         // 同步attachment字段
         resetContent(realData, emotion);
     }
@@ -559,12 +559,11 @@ public class FinanceUtils {
     }
 
     //云存储
-    private static Boolean getPath(AttachmentBaseVO data, String msgType, String fileName, String sdkfileid, String corpId) {
+    private static Boolean getPath(AttachmentBaseVO data, String msgType, String fileName, String sdkfileid, String corpId, RedisCache redisCache) {
         boolean result = false;
         String filePath = getFilePath(msgType);
         File tempFile = null;
         try {
-            RedisCache redisCache = SpringUtils.getBean(RedisCache.class);
             String cosUploadUrl = redisCache.getCacheObject(fileName);
             if (StringUtils.isNotEmpty(cosUploadUrl)) {
                 //并行处理消息可能存在同时上传相同文件情况，仅允许其中一个线程进行上传，其他线程进行等待最多2分钟
