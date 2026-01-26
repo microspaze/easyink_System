@@ -251,8 +251,7 @@ public class WeConversationArchiveServiceImpl implements WeConversationArchiveSe
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         boolQueryBuilder.mustNot(QueryBuilders.termQuery(WeConstans.MSG_TYPE, "agree"))
                 .mustNot(QueryBuilders.termQuery(WeConstans.MSG_TYPE, "disagree"));
-
-
+        
         //成员姓名查询
         if (StringUtils.isNotEmpty(query.getUserName())) {
             boolQueryBuilder.must(QueryBuilders.boolQuery().must(QueryBuilders.wildcardQuery("fromInfo.name.keyword", "*" + query.getUserName() + "*"))
@@ -272,6 +271,11 @@ public class WeConversationArchiveServiceImpl implements WeConversationArchiveSe
         //接收者姓名查询
         if (StringUtils.isNotEmpty(query.getReceiveName())) {
             boolQueryBuilder.must(QueryBuilders.boolQuery().must(QueryBuilders.wildcardQuery("toListInfo.name.keyword", "*" + query.getReceiveName() + "*")));
+        }
+        
+        //消息类型
+        if (StringUtils.isNoneEmpty(query.getMsgType())) {
+            boolQueryBuilder.must(QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("msgType", query.getMsgType())));
         }
 
         //消息动作
