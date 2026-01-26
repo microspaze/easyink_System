@@ -275,7 +275,7 @@ public class WeConversationArchiveServiceImpl implements WeConversationArchiveSe
         
         //消息类型
         if (StringUtils.isNoneEmpty(query.getMsgType())) {
-            boolQueryBuilder.must(QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("msgType", query.getMsgType())));
+            boolQueryBuilder.must(QueryBuilders.boolQuery().must(QueryBuilders.matchQuery(WeConstans.MSG_TYPE, query.getMsgType())));
         }
 
         //消息动作
