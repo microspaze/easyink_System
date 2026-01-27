@@ -91,22 +91,43 @@ public class WeConversationArchiveServiceImpl implements WeConversationArchiveSe
         builder.size(pageSize);
         builder.from(from);
         builder.sort(WeConstans.MSG_TIME, SortOrder.DESC);
-        // 需要完全匹配
-        BoolQueryBuilder fromBuilder = QueryBuilders.boolQuery().must(QueryBuilders.matchQuery(WeConstans.ROOMID, ""))
+        //ROOMID要么不存在要么为空字符串
+        BoolQueryBuilder roomBuilder = QueryBuilders.boolQuery()
+                .should(QueryBuilders.termQuery(WeConstans.ROOMID, ""))
+                .should(QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery(WeConstans.ROOMID)))
+                .minimumShouldMatch(1);
+        
+        //需要完全匹配
+        BoolQueryBuilder fromBuilder = QueryBuilders.boolQuery()
+                .must(roomBuilder)
                 .must(QueryBuilders.termsQuery(WeConstans.FROM, query.getFromId()))
                 .must(QueryBuilders.termsQuery(WeConstans.TO_LIST_KEYWORD, query.getReceiveId()));
 
-        BoolQueryBuilder toLsitBuilder = QueryBuilders.boolQuery().must(QueryBuilders.matchQuery(WeConstans.ROOMID, ""))
+        BoolQueryBuilder toListBuilder = QueryBuilders.boolQuery()
+                .must(roomBuilder)
                 .must(QueryBuilders.termsQuery(WeConstans.FROM, query.getReceiveId()))
                 .must(QueryBuilders.termsQuery(WeConstans.TO_LIST_KEYWORD, query.getFromId()));
         //查询聊天类型
-        if (StringUtils.isNotEmpty(query.getMsgType())) {
-            fromBuilder.must(QueryBuilders.termQuery(WeConstans.MSG_TYPE, query.getMsgType()));
-            toLsitBuilder.must(QueryBuilders.termQuery(WeConstans.MSG_TYPE, query.getMsgType()));
+        String msgType = query.getMsgType();
+        if (StringUtils.isNotEmpty(msgType)) {
+            if (msgType.equals("voice")) {
+                BoolQueryBuilder voiceBuilder = QueryBuilders.boolQuery()
+                        .should(QueryBuilders.termQuery(WeConstans.MSG_TYPE, "voice"))
+                        .should(QueryBuilders.termQuery(WeConstans.MSG_TYPE, "meeting_voice_call"))
+                        .minimumShouldMatch(1);
+                fromBuilder.must(voiceBuilder);
+                toListBuilder.must(voiceBuilder);
+            } else {
+                fromBuilder.must(QueryBuilders.termQuery(WeConstans.MSG_TYPE, msgType));
+                toListBuilder.must(QueryBuilders.termQuery(WeConstans.MSG_TYPE, msgType));
+            }
+        } else {
+            fromBuilder.mustNot(QueryBuilders.termQuery(WeConstans.MSG_TYPE, "voiptext"));
+            toListBuilder.mustNot(QueryBuilders.termQuery(WeConstans.MSG_TYPE, "voiptext"));
         }
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery()
                 .should(fromBuilder)
-                .should(toLsitBuilder)
+                .should(toListBuilder)
                 .minimumShouldMatch(1);
         //时间范围查询
         if (StringUtils.isNotEmpty(query.getBeginTime()) && StringUtils.isNotEmpty(query.getEndTime())) {
@@ -250,7 +271,8 @@ public class WeConversationArchiveServiceImpl implements WeConversationArchiveSe
 
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         boolQueryBuilder.mustNot(QueryBuilders.termQuery(WeConstans.MSG_TYPE, "agree"))
-                .mustNot(QueryBuilders.termQuery(WeConstans.MSG_TYPE, "disagree"));
+                .mustNot(QueryBuilders.termQuery(WeConstans.MSG_TYPE, "disagree"))
+                .mustNot(QueryBuilders.termQuery(WeConstans.MSG_TYPE, "voiptext"));
         
         //成员姓名查询
         if (StringUtils.isNotEmpty(query.getUserName())) {
