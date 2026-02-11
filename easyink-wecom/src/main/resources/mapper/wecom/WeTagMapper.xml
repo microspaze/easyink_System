@@ -80,10 +80,6 @@
             </foreach>
         </if>
         AND wt.status = ${@com.easyink.common.constant.Constants@NORMAL_CODE}
-        AND wfcr.status IN ('${@com.easyink.common.enums.CustomerStatusEnum@NORMAL.code}',
-        '${@com.easyink.common.enums.CustomerStatusEnum@DRAIN.code}',
-        '${@com.easyink.common.enums.CustomerStatusEnum@TO_BE_TRANSFERRED.code}',
-        '${@com.easyink.common.enums.CustomerStatusEnum@TRANSFERRING.code}')
         <if test="beginTime !=null">
             AND wfcr.create_time &gt;= #{beginTime}
         </if>
@@ -118,10 +114,6 @@
             </foreach>
         </if>
         ${dto.params.dataScope}
-        AND wfcr.status IN ('${@com.easyink.common.enums.CustomerStatusEnum@NORMAL.code}',
-        '${@com.easyink.common.enums.CustomerStatusEnum@DRAIN.code}',
-        '${@com.easyink.common.enums.CustomerStatusEnum@TO_BE_TRANSFERRED.code}',
-        '${@com.easyink.common.enums.CustomerStatusEnum@TRANSFERRING.code}')
         <if test="dto.beginTime !=null">
             AND wfcr.create_time &gt;= #{dto.beginTime}
         </if>
@@ -260,10 +252,6 @@
             </foreach>
         </if>
         ${dto.params.dataScope}
-        AND wfcr.status IN ('${@com.easyink.common.enums.CustomerStatusEnum@NORMAL.code}',
-        '${@com.easyink.common.enums.CustomerStatusEnum@DRAIN.code}',
-        '${@com.easyink.common.enums.CustomerStatusEnum@TO_BE_TRANSFERRED.code}',
-        '${@com.easyink.common.enums.CustomerStatusEnum@TRANSFERRING.code}')
         <if test="dto.beginTime !=null">
             AND wfcr.create_time &gt;= #{dto.beginTime}
         </if>
