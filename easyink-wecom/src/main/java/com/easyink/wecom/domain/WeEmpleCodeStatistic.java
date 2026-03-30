@@ -66,6 +66,10 @@ public class WeEmpleCodeStatistic implements Serializable {
     @TableField("loss_48h_customer_cnt")
     private Integer loss48hCustomerCnt;
 
+    @ApiModelProperty("时间段内新增客户的流失数（用于计算新客留存率）")
+    @TableField("loss_new_customer_cnt")
+    private Integer lossNewCustomerCnt;
+
     @ApiModelProperty("日期")
     @TableField("statistics_time")
     private String time;
@@ -89,6 +93,7 @@ public class WeEmpleCodeStatistic implements Serializable {
         lossCustomerCnt = 0;
         loss24hCustomerCnt = 0;
         loss48hCustomerCnt = 0;
+        lossNewCustomerCnt = 0;
     }
 
     /**

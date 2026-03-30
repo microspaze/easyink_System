@@ -24,32 +24,74 @@
     <!--活码统计-数据总览-->
     <select id="listEmpleTotal" resultType="com.easyink.wecom.domain.vo.statistics.emplecode.EmpleCodeBaseVO">
         SELECT
-        SUM(CASE WHEN `statistics_time` = #{endDate} THEN accumulate_customer_cnt ELSE 0 END) AS accumulateCustomerCnt,
-        SUM(CASE WHEN `statistics_time` = #{endDate} THEN retain_customer_cnt ELSE 0 END) AS retainCustomerCnt,
-        SUM( new_customer_cnt ) AS newCustomerCnt,
-        SUM( loss_customer_cnt ) AS lossCustomerCnt,
-        SUM( loss_24h_customer_cnt ) AS loss24hCustomerCnt,
-        SUM( loss_48h_customer_cnt ) AS loss48hCustomerCnt
-        FROM
-        we_emple_code_statistic
-        WHERE corp_id = #{corpId}
+        SUM(CASE WHEN wecs.`statistics_time` = #{endDate} THEN wecs.accumulate_customer_cnt ELSE 0 END) AS accumulateCustomerCnt,
+        SUM(CASE WHEN wecs.`statistics_time` = #{endDate} THEN wecs.retain_customer_cnt ELSE 0 END) AS retainCustomerCnt,
+        SUM( wecs.new_customer_cnt ) AS newCustomerCnt,
+        SUM( wecs.loss_customer_cnt ) AS lossCustomerCnt,
+        SUM( wecs.loss_24h_customer_cnt ) AS loss24hCustomerCnt,
+        SUM( wecs.loss_48h_customer_cnt ) AS loss48hCustomerCnt,
+        COALESCE(loss_new_cnt.cnt, 0) AS lossNewCustomerCnt
+        FROM we_emple_code_statistic wecs
+        LEFT JOIN (
+            SELECT corp_id,
+                <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
+                    emple_code_id,
+                </if>
+                <if test="userIds != null and userIds.size() > 0">
+                    user_id,
+                </if>
+                COUNT(0) AS cnt
+            FROM we_emple_code_analyse
+            WHERE corp_id = #{corpId}
+            AND type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}'
+            AND DATE_FORMAT(add_time, '%Y-%m-%d') &gt;= #{beginDate}
+            AND DATE_FORMAT(add_time, '%Y-%m-%d') &lt;= #{endDate}
+            <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
+                AND emple_code_id IN
+                <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
+                     #{empleCodeId}
+                </foreach>
+            </if>
+            <if test="userIds != null and userIds.size() > 0">
+                AND user_id IN
+                <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+                    #{userId}
+                </foreach>
+            </if>
+            GROUP BY corp_id
+            <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
+                , emple_code_id
+            </if>
+            <if test="userIds != null and userIds.size() > 0">
+                , user_id
+            </if>
+        ) loss_new_cnt ON wecs.corp_id = loss_new_cnt.corp_id
         <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
-            AND emple_code_id IN
+            AND wecs.emple_code_id = loss_new_cnt.emple_code_id
+        </if>
+        <if test="userIds != null and userIds.size() > 0">
+            AND wecs.user_id = loss_new_cnt.user_id
+        </if>
+        WHERE wecs.corp_id = #{corpId}
+        <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
+            AND wecs.emple_code_id IN
             <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
                  #{empleCodeId}
             </foreach>
         </if>
         <if test="userIds != null and userIds.size() > 0">
-            AND user_id IN
+            AND wecs.user_id IN
             <foreach collection="userIds" item="userId" open="(" separator="," close=")">
                 #{userId}
             </foreach>
         </if>
         <if test="beginDate != null and beginDate != ''">
-            AND `statistics_time` &gt;= #{beginDate}
-        </if><if test="endDate != null and endDate != ''">
-            AND `statistics_time` &lt;= #{endDate}
+            AND wecs.`statistics_time` &gt;= #{beginDate}
         </if>
+        <if test="endDate != null and endDate != ''">
+            AND wecs.`statistics_time` &lt;= #{endDate}
+        </if>
+        GROUP BY wecs.corp_id
     </select>
     <!--活码统计-重复添加-->
     <select id="listEmpleDuplicate" resultType="com.easyink.wecom.domain.vo.statistics.emplecode.EmpleCodeBaseVO">

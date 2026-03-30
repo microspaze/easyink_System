@@ -7,6 +7,7 @@ import com.easyink.wecom.domain.WeEmpleCodeStatistic;
 import com.easyink.wecom.domain.dto.emplecode.FindWeEmpleCodeAnalyseDTO;
 import com.easyink.wecom.domain.vo.WeEmplyCodeAnalyseVO;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -35,15 +36,17 @@ public interface WeEmpleCodeAnalyseService extends IService<WeEmpleCodeAnalyse> 
     AjaxResult exportTimeRangeAnalyseCount(FindWeEmpleCodeAnalyseDTO findWeEmpleCodeAnalyseDTO);
 
     /**
-     * 新增
+     * 保存员工活码数据统计
      *
      * @param corpId         企业ID
      * @param userId         员工ID
      * @param externalUserId 客户ID
      * @param state          state
+     * @param addFlag        是否新增
+     * @param addTime        客户的扫码添加时间（删除时传入，新增时传null使用当前时间）
      * @return boolean
      */
-    boolean saveWeEmpleCodeAnalyse(String corpId, String userId, String externalUserId, String state, Boolean addFlag);
+    boolean saveWeEmpleCodeAnalyse(String corpId, String userId, String externalUserId, String state, Boolean addFlag, Date addTime);
 
     /**
      * 保存获客链接统计信息

@@ -103,8 +103,8 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
             // 处理缓存数据
             handleTotalRedisData(dto.getEndDate(), dto.getCorpId(), dto.getEmpleCodeIdList(), dto.getUserIds(), baseVO);
         }
-        // 设置截止当前时间下的新增客户数
-        baseVO.setCurrentNewCustomerCnt(baseVO.getNewCustomerCnt()-baseVO.getLossCustomerCnt());
+        // 设置截止当前时间下的新增客户数 = 新增客户数 - 时间段内新增客户的流失数
+        baseVO.setCurrentNewCustomerCnt(baseVO.getNewCustomerCnt()-baseVO.getLossNewCustomerCnt());
         // 设置截止当前时间下的新增客户总重复数
         EmpleCodeBaseVO duplicateVO = this.baseMapper.listEmpleDuplicate(dto);
         if (duplicateVO != null) {

@@ -144,7 +144,8 @@ public class WeCallBackDelFollowUserImpl extends WeEventStrategy {
                     customerAssistantService.callBackDelAssistantHandle(weFlowerCustomerRel.getState(), corpId, message.getExternalUserId(), message.getUserId());
                 } else {
                     // 员工活码添加的外部联系人处理
-                    weEmpleCodeAnalyseService.saveWeEmpleCodeAnalyse(corpId, message.getUserId(), message.getExternalUserId(), weFlowerCustomerRel.getState(), false);
+                    // 传入客户的扫码添加时间(add_time)，保证流失统计口径一致
+                    weEmpleCodeAnalyseService.saveWeEmpleCodeAnalyse(corpId, message.getUserId(), message.getExternalUserId(), weFlowerCustomerRel.getState(), false, weFlowerCustomerRel.getCreateTime());
                     // 更新Redis中的数据
                     String today = DateUtils.dateTime(new Date());
                     Long empleCodeId = Long.valueOf(weFlowerCustomerRel.getState());

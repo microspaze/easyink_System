@@ -2,6 +2,7 @@ package com.easyink.wecom.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.easyink.common.constant.GenConstants;
 import com.easyink.common.core.domain.AjaxResult;
 import com.easyink.common.core.domain.wecom.WeDepartment;
 import com.easyink.common.core.domain.wecom.WeUser;
@@ -349,9 +350,11 @@ public class WeEmpleCodeAnalyseServiceImpl extends ServiceImpl<WeEmpleCodeAnalys
 
     /**
      * 保存员工活码数据统计
+     *
+     * @param addTime 客户的扫码添加时间（用于删除时设置为add_time，保证统计口径一致）
      */
     @Override
-    public boolean saveWeEmpleCodeAnalyse(String corpId, String userId, String externalUserId, String state, Boolean addFlag) {
+    public boolean saveWeEmpleCodeAnalyse(String corpId, String userId, String externalUserId, String state, Boolean addFlag, Date addTime) {
         try {
             if (StringUtils.isBlank(corpId) || StringUtils.isBlank(userId) || StringUtils.isBlank(externalUserId) || StringUtils.isBlank(state) || addFlag == null) {
                 throw new CustomException(ResultTip.TIP_GENERAL_BAD_REQUEST);
@@ -365,7 +368,8 @@ public class WeEmpleCodeAnalyseServiceImpl extends ServiceImpl<WeEmpleCodeAnalys
             weEmpleCodeAnalyse.setExternalUserId(externalUserId);
             weEmpleCodeAnalyse.setTime(new Date());
             weEmpleCodeAnalyse.setType(addFlag);
-            weEmpleCodeAnalyse.setAddTime(new Date());
+            // 使用传入的 addTime，删除时为客户的扫码添加时间，新增时为当前时间
+            weEmpleCodeAnalyse.setAddTime(addTime != null ? addTime : new Date());
             baseMapper.insert(weEmpleCodeAnalyse);
             return true;
         } catch (Exception e) {

@@ -19,3 +19,6 @@ velocity.log
 .DS_Store
 logs
 .m2
+.vs/
+.vscode/
+.idea/
