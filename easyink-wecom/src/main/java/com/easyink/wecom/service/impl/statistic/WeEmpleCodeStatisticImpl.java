@@ -389,7 +389,12 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
         for (EmpleCodeDateVO todayVO : statisticList) {
             if (todayVO.getTime().equals(date)) {
                 // 处理Redis数据
-                todayVO.handleRedisData(redisData.getNewCustomerCnt(), redisData.getLossCustomerCnt());
+                todayVO.handleRedisData(
+                        redisData.getNewCustomerCnt() != null ? redisData.getNewCustomerCnt() : 0,
+                        redisData.getLossCustomerCnt() != null ? redisData.getLossCustomerCnt() : 0,
+                        redisData.getLoss24hCustomerCnt() != null ? redisData.getLoss24hCustomerCnt() : 0,
+                        redisData.getLoss48hCustomerCnt() != null ? redisData.getLoss48hCustomerCnt() : 0
+                );
             }
         }
     }
@@ -416,7 +421,12 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
             return;
         }
         // 组装今日的数据
-        baseVO.handleRedisData(redisData.getNewCustomerCnt(), redisData.getLossCustomerCnt());
+        baseVO.handleRedisData(
+                redisData.getNewCustomerCnt() != null ? redisData.getNewCustomerCnt() : 0,
+                redisData.getLossCustomerCnt() != null ? redisData.getLossCustomerCnt() : 0,
+                redisData.getLoss24hCustomerCnt() != null ? redisData.getLoss24hCustomerCnt() : 0,
+                redisData.getLoss48hCustomerCnt() != null ? redisData.getLoss48hCustomerCnt() : 0
+        );
     }
 
     /**
@@ -447,7 +457,12 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
                 // 组装今日的数据
                 if (resultData.getEmpleCodeId().equals(redisData.getEmpleCodeId().toString())) {
                     // 处理Redis数据
-                    resultData.handleRedisData(redisData.getNewCustomerCnt(), redisData.getLossCustomerCnt());
+                    resultData.handleRedisData(
+                            redisData.getNewCustomerCnt() != null ? redisData.getNewCustomerCnt() : 0,
+                            redisData.getLossCustomerCnt() != null ? redisData.getLossCustomerCnt() : 0,
+                            redisData.getLoss24hCustomerCnt() != null ? redisData.getLoss24hCustomerCnt() : 0,
+                            redisData.getLoss48hCustomerCnt() != null ? redisData.getLoss48hCustomerCnt() : 0
+                    );
                 }
             }
         }
@@ -478,7 +493,12 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
                 // 组装今日的数据
                 if (redisData.getUserId().equals(resultData.getUserId())) {
                     // 处理Redis中的数据
-                    resultData.handleUserRedisData(redisData.getNewCustomerCnt(), redisData.getLossCustomerCnt());
+                    resultData.handleUserRedisData(
+                            redisData.getNewCustomerCnt() != null ? redisData.getNewCustomerCnt() : 0,
+                            redisData.getLossCustomerCnt() != null ? redisData.getLossCustomerCnt() : 0,
+                            redisData.getLoss24hCustomerCnt() != null ? redisData.getLoss24hCustomerCnt() : 0,
+                            redisData.getLoss48hCustomerCnt() != null ? redisData.getLoss48hCustomerCnt() : 0
+                    );
                 }
             }
         }

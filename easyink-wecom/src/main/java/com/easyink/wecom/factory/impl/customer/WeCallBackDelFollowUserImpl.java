@@ -146,7 +146,21 @@ public class WeCallBackDelFollowUserImpl extends WeEventStrategy {
                     // 员工活码添加的外部联系人处理
                     weEmpleCodeAnalyseService.saveWeEmpleCodeAnalyse(corpId, message.getUserId(), message.getExternalUserId(), weFlowerCustomerRel.getState(), false);
                     // 更新Redis中的数据
-                    empleStatisticRedisCache.addLossCustomerCnt(corpId, DateUtils.dateTime(new Date()), Long.valueOf(weFlowerCustomerRel.getState()), message.getUserId());
+                    String today = DateUtils.dateTime(new Date());
+                    Long empleCodeId = Long.valueOf(weFlowerCustomerRel.getState());
+                    String userId = message.getUserId();
+                    // 更新总流失客户数
+                    empleStatisticRedisCache.addLossCustomerCnt(corpId, today, empleCodeId, userId);
+                    // 计算客户添加到现在的小时数，判断是否24h或48h流失
+                    if (weFlowerCustomerRel.getCreateTime() != null) {
+                        long hoursSinceAdd = (System.currentTimeMillis() - weFlowerCustomerRel.getCreateTime().getTime()) / (1000 * 60 * 60);
+                        if (hoursSinceAdd <= 48) {
+                            empleStatisticRedisCache.addLoss48hCustomerCnt(corpId, today, empleCodeId, userId);
+                        }
+                        if (hoursSinceAdd <= 24) {
+                            empleStatisticRedisCache.addLoss24hCustomerCnt(corpId, today, empleCodeId, userId);
+                        }
+                    }
                 }
             }
             // 客户轨迹:记录删除跟进成员事件
