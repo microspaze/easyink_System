@@ -96,21 +96,26 @@
     
     <!--获取企业下所有活码-员工对应的新增客户数和流失客户数-->
     <select id="getEmpleStatisticDateData" resultType="com.easyink.wecom.domain.WeEmpleCodeStatistic">
-        SELECT emple_code_id,
-               user_id,
-               SUM(CASE WHEN type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@ADD.type}' THEN 1 ELSE 0 END) AS newCustomerCnt,
-               SUM(CASE WHEN type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}' THEN 1 ELSE 0 END) AS lossCustomerCnt,
-               `add_code_time` AS `time`
-        FROM we_emple_code_analyse
-        WHERE corp_id = #{corpId}
+        SELECT weca.emple_code_id,
+               weca.user_id,
+               SUM(CASE WHEN weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@ADD.type}' THEN 1 ELSE 0 END) AS newCustomerCnt,
+               SUM(CASE WHEN weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}' THEN 1 ELSE 0 END) AS lossCustomerCnt,
+               SUM(CASE WHEN weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}' AND wfcr.delete_time IS NOT NULL AND TIMESTAMPDIFF(HOUR, wfcr.create_time, wfcr.delete_time) &lt;= 24 THEN 1 ELSE 0 END) AS loss24hCustomerCnt,
+               SUM(CASE WHEN weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}' AND wfcr.delete_time IS NOT NULL AND TIMESTAMPDIFF(HOUR, wfcr.create_time, wfcr.delete_time) &lt;= 48 THEN 1 ELSE 0 END) AS loss48hCustomerCnt,
+               weca.`add_code_time` AS `time`
+        FROM we_emple_code_analyse weca
+        LEFT JOIN we_flower_customer_rel wfcr ON weca.corp_id = wfcr.corp_id
+            AND weca.user_id = wfcr.user_id
+            AND weca.external_userid = wfcr.external_userid
+        WHERE weca.corp_id = #{corpId}
         <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
-        AND emple_code_id IN
+        AND weca.emple_code_id IN
             <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
                 #{empleCodeId}
             </foreach>
         </if>
-        AND `add_code_time` = #{date}
-        GROUP BY emple_code_id, user_id
+        AND weca.`add_code_time` = #{date}
+        GROUP BY weca.emple_code_id, weca.user_id
     </select>
     <!--获取企业下所有活码-员工对应的累计客户数-->
     <select id="getAccumulateData" resultType="com.easyink.wecom.domain.WeEmpleCodeStatistic">

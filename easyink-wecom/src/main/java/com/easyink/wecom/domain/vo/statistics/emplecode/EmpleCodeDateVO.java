@@ -25,6 +25,8 @@ public class EmpleCodeDateVO extends EmpleCodeBaseVO{
         super.setRetainCustomerCnt(0);
         super.setNewCustomerCnt(0);
         super.setLossCustomerCnt(0);
+        super.setLoss24hCustomerCnt(0);
+        super.setLoss48hCustomerCnt(0);
         super.setCurrentNewCustomerCnt(0);
     }
 

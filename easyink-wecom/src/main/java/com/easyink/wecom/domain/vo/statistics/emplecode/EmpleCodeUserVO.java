@@ -46,6 +46,14 @@ public class EmpleCodeUserVO {
     @Excel(name = "流失客户数", sort = 6)
     private Integer lossCustomerCnt = 0;
 
+    @ApiModelProperty("24小时客户流失数")
+    @Excel(name = "24小时客户流失数", sort = 6)
+    private Integer loss24hCustomerCnt = 0;
+
+    @ApiModelProperty("48小时客户流失数")
+    @Excel(name = "48小时客户流失数", sort = 6)
+    private Integer loss48hCustomerCnt = 0;
+
     @ApiModelProperty("截止当前时间，新增客户数")
     private Integer currentNewCustomerCnt = 0;
 

@@ -178,6 +178,8 @@ public class WeEmpleCodeAnalyseServiceImpl extends ServiceImpl<WeEmpleCodeAnalys
                     .ifPresent(empleCodeStatistic -> {
                         result.setNewCustomerCnt(empleCodeStatistic.getNewCustomerCnt());
                         result.setLossCustomerCnt(empleCodeStatistic.getLossCustomerCnt());
+                        result.setLoss24hCustomerCnt(empleCodeStatistic.getLoss24hCustomerCnt());
+                        result.setLoss48hCustomerCnt(empleCodeStatistic.getLoss48hCustomerCnt());
                     });
             // 将累计客户数设置到对应的活码中,为活码id相同且userid相同的员工设置累计客户数
             accumulateList.stream().filter(accumulateItem -> result.getEmpleCodeId().equals(accumulateItem.getEmpleCodeId()) && result.getUserId().equals(accumulateItem.getUserId()))

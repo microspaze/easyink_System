@@ -5,19 +5,21 @@
 <mapper namespace="com.easyink.wecom.mapper.statistic.WeEmpleCodeStatisticMapper">
     <!--批量插入或更新统计数据-->
     <insert id="batchInsertOrUpdate">
-        INSERT INTO we_emple_code_statistic (corp_id, emple_code_id, user_id, accumulate_customer_cnt, retain_customer_cnt, new_customer_cnt, loss_customer_cnt, `statistics_time`)
+        INSERT INTO we_emple_code_statistic (corp_id, emple_code_id, user_id, accumulate_customer_cnt, retain_customer_cnt, new_customer_cnt, loss_customer_cnt, loss_24h_customer_cnt, loss_48h_customer_cnt, `statistics_time`)
         VALUES
         <foreach collection="list" item="item" separator=",">
             (
             #{item.corpId}, #{item.empleCodeId}, #{item.userId}, #{item.accumulateCustomerCnt},
-            #{item.retainCustomerCnt}, #{item.newCustomerCnt}, #{item.lossCustomerCnt}, #{item.time}
+            #{item.retainCustomerCnt}, #{item.newCustomerCnt}, #{item.lossCustomerCnt}, #{item.loss24hCustomerCnt}, #{item.loss48hCustomerCnt}, #{item.time}
             )
         </foreach>
         ON DUPLICATE KEY UPDATE
         accumulate_customer_cnt = VALUES(accumulate_customer_cnt),
         retain_customer_cnt = VALUES(retain_customer_cnt),
         new_customer_cnt = VALUES(new_customer_cnt),
-        loss_customer_cnt = VALUES(loss_customer_cnt)
+        loss_customer_cnt = VALUES(loss_customer_cnt),
+        loss_24h_customer_cnt = VALUES(loss_24h_customer_cnt),
+        loss_48h_customer_cnt = VALUES(loss_48h_customer_cnt)
     </insert>
     <!--活码统计-数据总览-->
     <select id="listEmpleTotal" resultType="com.easyink.wecom.domain.vo.statistics.emplecode.EmpleCodeBaseVO">
@@ -25,7 +27,9 @@
         SUM(CASE WHEN `statistics_time` = #{endDate} THEN accumulate_customer_cnt ELSE 0 END) AS accumulateCustomerCnt,
         SUM(CASE WHEN `statistics_time` = #{endDate} THEN retain_customer_cnt ELSE 0 END) AS retainCustomerCnt,
         SUM( new_customer_cnt ) AS newCustomerCnt,
-        SUM( loss_customer_cnt ) AS lossCustomerCnt
+        SUM( loss_customer_cnt ) AS lossCustomerCnt,
+        SUM( loss_24h_customer_cnt ) AS loss24hCustomerCnt,
+        SUM( loss_48h_customer_cnt ) AS loss48hCustomerCnt
         FROM
         we_emple_code_statistic
         WHERE corp_id = #{corpId}
@@ -108,7 +112,9 @@
         SUM( CASE WHEN `statistics_time` = #{endDate} THEN wecs.accumulate_customer_cnt ELSE 0 END ) AS accumulateCustomerCnt,
         SUM( CASE WHEN `statistics_time` = #{endDate} THEN wecs.retain_customer_cnt ELSE 0 END ) AS retainCustomerCnt,
         SUM( wecs.new_customer_cnt ) AS newCustomerCnt,
-        SUM( wecs.loss_customer_cnt ) AS lossCustomerCnt
+        SUM( wecs.loss_customer_cnt ) AS lossCustomerCnt,
+        SUM( wecs.loss_24h_customer_cnt ) AS loss24hCustomerCnt,
+        SUM( wecs.loss_48h_customer_cnt ) AS loss48hCustomerCnt
         FROM
         we_emple_code_statistic wecs
         LEFT JOIN we_user wu ON wecs.corp_id = wu.corp_id AND wecs.user_id = wu.user_id
@@ -143,7 +149,9 @@
         SUM( CASE WHEN `statistics_time` = #{endDate} THEN wecs.accumulate_customer_cnt ELSE 0 END ) AS accumulateCustomerCnt,
         SUM( CASE WHEN `statistics_time` = #{endDate} THEN wecs.retain_customer_cnt ELSE 0 END ) AS retainCustomerCnt,
         SUM( wecs.new_customer_cnt ) AS newCustomerCnt,
-        SUM( wecs.loss_customer_cnt ) AS lossCustomerCnt
+        SUM( wecs.loss_customer_cnt ) AS lossCustomerCnt,
+        SUM( wecs.loss_24h_customer_cnt ) AS loss24hCustomerCnt,
+        SUM( wecs.loss_48h_customer_cnt ) AS loss48hCustomerCnt
         FROM
         we_emple_code_statistic wecs
         LEFT JOIN we_emple_code wec ON wecs.corp_id = wec.corp_id AND wecs.emple_code_id = wec.id
@@ -199,7 +207,9 @@
         SELECT
         `statistics_time` as `time`,
         SUM( new_customer_cnt ) AS newCustomerCnt,
-        SUM( loss_customer_cnt ) AS lossCustomerCnt
+        SUM( loss_customer_cnt ) AS lossCustomerCnt,
+        SUM( loss_24h_customer_cnt ) AS loss24hCustomerCnt,
+        SUM( loss_48h_customer_cnt ) AS loss48hCustomerCnt
         FROM
         we_emple_code_statistic
         WHERE corp_id = #{corpId}
