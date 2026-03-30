@@ -374,7 +374,7 @@ public class WeCallBackAddExternalContactImpl extends WeEventStrategy {
             if (null != messageMap && org.apache.commons.lang3.StringUtils.isNotBlank(messageMap.getEmpleCodeId())) {
                 String empleCodeId = messageMap.getEmpleCodeId();
                 //更新活码数据统计
-                weEmpleCodeAnalyseService.saveWeEmpleCodeAnalyse(corpId, userId, externalUserId, empleCodeId, true);
+                weEmpleCodeAnalyseService.saveWeEmpleCodeAnalyse(corpId, userId, externalUserId, empleCodeId, true, null);
                 // 更新Redis中的数据
                 empleStatisticRedisCache.addNewCustomerCnt(corpId, DateUtils.dateTime(new Date()), Long.valueOf(empleCodeId), userId);
                 //查询外部联系人与通讯录关系数据
