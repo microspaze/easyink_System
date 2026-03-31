@@ -156,16 +156,38 @@
         SUM( wecs.new_customer_cnt ) AS newCustomerCnt,
         SUM( wecs.loss_customer_cnt ) AS lossCustomerCnt,
         SUM( wecs.loss_24h_customer_cnt ) AS loss24hCustomerCnt,
-        SUM( wecs.loss_48h_customer_cnt ) AS loss48hCustomerCnt
+        SUM( wecs.loss_48h_customer_cnt ) AS loss48hCustomerCnt,
+        COALESCE(loss_new_cnt.cnt, 0) AS lossNewCustomerCnt
         FROM
         we_emple_code_statistic wecs
         LEFT JOIN we_user wu ON wecs.corp_id = wu.corp_id AND wecs.user_id = wu.user_id
         LEFT JOIN we_department wd ON wu.corp_id = wd.corp_id AND wu.main_department = wd.id
+        LEFT JOIN (
+            SELECT corp_id, user_id, COUNT(0) AS cnt
+            FROM we_emple_code_analyse
+            WHERE corp_id = #{corpId}
+            AND type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}'
+            AND DATE_FORMAT(add_time, '%Y-%m-%d') &gt;= #{beginDate}
+            AND DATE_FORMAT(add_time, '%Y-%m-%d') &lt;= #{endDate}
+            <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
+                AND emple_code_id IN
+                <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
+                     #{empleCodeId}
+                </foreach>
+            </if>
+            <if test="userIds != null and userIds.size() > 0">
+                AND user_id IN
+                <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+                    #{userId}
+                </foreach>
+            </if>
+            GROUP BY corp_id, user_id
+        ) loss_new_cnt ON wecs.corp_id = loss_new_cnt.corp_id AND wecs.user_id = loss_new_cnt.user_id
         WHERE wecs.corp_id = #{corpId}
         <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
             AND wecs.emple_code_id IN
             <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
-                #{empleCodeId}
+                 #{empleCodeId}
             </foreach>
         </if>
         <if test="userIds != null and userIds.size() > 0">
@@ -193,15 +215,37 @@
         SUM( wecs.new_customer_cnt ) AS newCustomerCnt,
         SUM( wecs.loss_customer_cnt ) AS lossCustomerCnt,
         SUM( wecs.loss_24h_customer_cnt ) AS loss24hCustomerCnt,
-        SUM( wecs.loss_48h_customer_cnt ) AS loss48hCustomerCnt
+        SUM( wecs.loss_48h_customer_cnt ) AS loss48hCustomerCnt,
+        COALESCE(loss_new_cnt.cnt, 0) AS lossNewCustomerCnt
         FROM
         we_emple_code_statistic wecs
         LEFT JOIN we_emple_code wec ON wecs.corp_id = wec.corp_id AND wecs.emple_code_id = wec.id
+        LEFT JOIN (
+            SELECT corp_id, emple_code_id, COUNT(0) AS cnt
+            FROM we_emple_code_analyse
+            WHERE corp_id = #{corpId}
+            AND type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}'
+            AND DATE_FORMAT(add_time, '%Y-%m-%d') &gt;= #{beginDate}
+            AND DATE_FORMAT(add_time, '%Y-%m-%d') &lt;= #{endDate}
+            <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
+                AND emple_code_id IN
+                <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
+                     #{empleCodeId}
+                </foreach>
+            </if>
+            <if test="userIds != null and userIds.size() > 0">
+                AND user_id IN
+                <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+                    #{userId}
+                </foreach>
+            </if>
+            GROUP BY corp_id, emple_code_id
+        ) loss_new_cnt ON wecs.corp_id = loss_new_cnt.corp_id AND wecs.emple_code_id = loss_new_cnt.emple_code_id
         WHERE wecs.corp_id = #{corpId}
         <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
             AND wecs.emple_code_id IN
             <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
-                #{empleCodeId}
+                 #{empleCodeId}
             </foreach>
         </if>
         <if test="userIds != null and userIds.size() > 0">

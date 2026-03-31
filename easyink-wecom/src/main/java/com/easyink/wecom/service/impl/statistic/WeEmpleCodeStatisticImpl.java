@@ -139,7 +139,7 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
         }
         // 为对应的员工设置截止当前时间，员工对应的新增客户数
         for (EmpleCodeUserVO empleCodeUserVO : resultList) {
-            empleCodeUserVO.setCurrentNewCustomerCnt(empleCodeUserVO.getNewCustomerCnt()-empleCodeUserVO.getLossCustomerCnt());
+            empleCodeUserVO.setCurrentNewCustomerCnt(empleCodeUserVO.getNewCustomerCnt()-empleCodeUserVO.getLossNewCustomerCnt());
         }
         return resultList;
     }
@@ -184,7 +184,7 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
             handleEmpleRedisData(dto.getEndDate(), dto.getCorpId(), dto.getEmpleCodeIdList(), resultList, dto.getUserIds());
         }
         for (EmpleCodeVO empleCodeVO : resultList) {
-            empleCodeVO.handleCurrentNewCustomerCnt(empleCodeVO.getNewCustomerCnt()-empleCodeVO.getLossCustomerCnt());
+            empleCodeVO.handleCurrentNewCustomerCnt(empleCodeVO.getNewCustomerCnt()-empleCodeVO.getLossNewCustomerCnt());
         }
         return resultList;
     }

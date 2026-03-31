@@ -54,6 +54,9 @@ public class EmpleCodeUserVO {
     @Excel(name = "48小时客户流失数", sort = 6)
     private Integer loss48hCustomerCnt = 0;
 
+    @ApiModelProperty("时间段内新增客户的流失数（用于计算新客留存率）")
+    private Integer lossNewCustomerCnt = 0;
+
     @ApiModelProperty("截止当前时间，新增客户数")
     private Integer currentNewCustomerCnt = 0;
 
