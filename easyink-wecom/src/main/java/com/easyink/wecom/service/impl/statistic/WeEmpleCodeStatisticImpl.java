@@ -273,6 +273,9 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
                             codeDateVO.getRetainCustomerCnt(),
                             codeDateVO.getNewCustomerCnt(),
                             codeDateVO.getLossCustomerCnt(),
+                            codeDateVO.getLoss24hCustomerCnt(),
+                            codeDateVO.getLoss48hCustomerCnt(),
+                            codeDateVO.getLossNewCustomerCnt(),
                             codeDateVO.getCurrentNewCustomerCnt());
                 }
             }

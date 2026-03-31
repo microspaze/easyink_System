@@ -37,13 +37,19 @@ public class EmpleCodeDateVO extends EmpleCodeBaseVO{
      * @param retainCustomerCnt 留存客户总数
      * @param newCustomerCnt 新增客户数
      * @param lossCustomerCnt 流失客户数
+     * @param loss24hCustomerCnt 24h流失客户数
+     * @param loss48hCustomerCnt 48h流失客户数
+     * @param lossNewCustomerCnt 新增客户流失数
      * @param currentNewCustomerCnt 截至当前时间，新增客户数
      */
-    public void handleData(int accumulateCustomerCnt, int retainCustomerCnt, int newCustomerCnt, int lossCustomerCnt, int currentNewCustomerCnt) {
+    public void handleData(int accumulateCustomerCnt, int retainCustomerCnt, int newCustomerCnt, int lossCustomerCnt, int loss24hCustomerCnt, int loss48hCustomerCnt, int lossNewCustomerCnt, int currentNewCustomerCnt) {
         super.setAccumulateCustomerCnt(accumulateCustomerCnt);
         super.setRetainCustomerCnt(retainCustomerCnt);
         super.setNewCustomerCnt(newCustomerCnt);
         super.setLossCustomerCnt(lossCustomerCnt);
+        super.setLoss24hCustomerCnt(loss24hCustomerCnt);
+        super.setLoss48hCustomerCnt(loss48hCustomerCnt);
+        super.setLossNewCustomerCnt(lossNewCustomerCnt);
         super.setCurrentNewCustomerCnt(currentNewCustomerCnt);
     }
 }
