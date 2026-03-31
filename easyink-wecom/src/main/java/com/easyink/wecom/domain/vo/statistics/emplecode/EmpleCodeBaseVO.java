@@ -66,22 +66,21 @@ public class EmpleCodeBaseVO {
 
 
     /**
-     * 新客留存率 公式：截止当前时间，新增客户数 / 新增客户数
+     * 新客留存率 公式：(新增客户数 - 新增客户流失数) / 新增客户数
      */
     public String getRetainNewCustomerRate() {
-        if (currentNewCustomerCnt == null || newCustomerCnt == null) {
+        if (newCustomerCnt == null || lossNewCustomerCnt == null) {
             return NULL_VALUE;
         }
         BigDecimal percent = new BigDecimal(100);
-        if(newCustomerCnt == 0) {
+        if (newCustomerCnt == 0) {
             return NULL_VALUE;
         }
-        // 百分比
-        BigDecimal currCntDecimal = new BigDecimal(currentNewCustomerCnt);
-        BigDecimal newCntDecimal = new BigDecimal(newCustomerCnt);
         int scale = 2;
-        // 计算留存率  截止当前时间,新增客户数 / 新客数
-        return currCntDecimal
+        // 计算留存率 (新增客户数 - 新增客户流失数) / 新增客户数
+        BigDecimal retainCntDecimal = new BigDecimal(newCustomerCnt - lossNewCustomerCnt);
+        BigDecimal newCntDecimal = new BigDecimal(newCustomerCnt);
+        return retainCntDecimal
                 .multiply(percent)
                 .divide(newCntDecimal, scale, RoundingMode.HALF_UP)
                 .stripTrailingZeros().toPlainString();

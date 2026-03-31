@@ -244,16 +244,10 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
         if (CollectionUtils.isEmpty(externalUseridList)) {
             return handleResultList(statisticList, dto);
         }
-        // 获取截止当前时间每个日期对应的有效客户数
-        List<EmpleCodeDateVO> empleUserCustomerRels = this.baseMapper.listEmpleDateUserCustomerRel(dto.getCorpId(), externalUseridList, dto.getUserIds(), DateUtils.parseEndDay(dto.getEndDate()));
-        // 为对应的日期设置截止当前时间，员工对应的新增客户数
-        if (CollectionUtils.isNotEmpty(empleUserCustomerRels)) {
+        // 设置当前时间新增客户数 = 新增客户数 - 新增客户流失数
+        if (CollectionUtils.isNotEmpty(statisticList)) {
             for (EmpleCodeDateVO empleCodeDateVO : statisticList) {
-                for (EmpleCodeDateVO empleDateRels : empleUserCustomerRels) {
-                    if (empleCodeDateVO.getTime().equals(empleDateRels.getTime())) {
-                        empleCodeDateVO.setCurrentNewCustomerCnt(empleDateRels.getCurrentNewCustomerCnt());
-                    }
-                }
+                empleCodeDateVO.setCurrentNewCustomerCnt(empleCodeDateVO.getNewCustomerCnt() - empleCodeDateVO.getLossNewCustomerCnt());
             }
         }
         // 组装结果数据
