@@ -1,6 +1,8 @@
 package com.easyink.wecom.factory.impl.customer;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.easyink.common.constant.Constants;
+import com.easyink.common.constant.GenConstants;
 import com.easyink.common.core.redis.RedisCache;
 import com.easyink.common.enums.WeSensitiveActEnum;
 import com.easyink.wecom.domain.WeCustomer;
@@ -8,12 +10,14 @@ import com.easyink.wecom.domain.WeSensitiveAct;
 import com.easyink.wecom.domain.WeSensitiveActHit;
 import com.easyink.wecom.domain.vo.WxCpXmlMessageVO;
 import com.easyink.wecom.factory.WeEventStrategy;
+import com.easyink.wecom.service.WeAdvertEntryService;
 import com.easyink.wecom.service.WeCustomerService;
 import com.easyink.wecom.service.WeCustomerTransferRecordService;
 import com.easyink.wecom.service.WeFlowerCustomerRelService;
 import com.easyink.wecom.service.WeSensitiveActHitService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +41,8 @@ public class WeCallBackDelExternalContactImpl extends WeEventStrategy {
     private RedisCache redisCache;
     @Autowired
     private WeCustomerTransferRecordService weCustomerTransferRecordService;
+    @Autowired
+    private WeAdvertEntryService weAdvertEntryService;
     /**
      * 表示此客户是因在职继承自动被转接成员删除
      */
@@ -77,6 +83,30 @@ public class WeCallBackDelExternalContactImpl extends WeEventStrategy {
                 weSensitiveActHitService.setUserOrCustomerInfo(weSensitiveActHit);
                 weSensitiveActHitService.insertWeSensitiveActHit(weSensitiveActHit);
             }
+            // 更新广告记录的is_deleted字段
+            updateAdvertEntryIsDeleted(message.getToUserName(), message.getExternalUserId());
+        }
+    }
+
+    /**
+     * 更新广告记录的is_deleted字段
+     *
+     * @param corpId         企业ID
+     * @param externalUserId 客户externalUserId
+     */
+    private void updateAdvertEntryIsDeleted(String corpId, String externalUserId) {
+        try {
+            // 获取客户信息以获取unionid
+            WeCustomer weCustomer = weCustomerService.getOne(new LambdaQueryWrapper<WeCustomer>()
+                    .eq(WeCustomer::getExternalUserid, externalUserId)
+                    .eq(WeCustomer::getCorpId, corpId)
+                    .last(GenConstants.LIMIT_1));
+            if (weCustomer != null && StringUtils.isNotBlank(weCustomer.getUnionid())) {
+                weAdvertEntryService.updateIsDeletedByUnionid(weCustomer.getUnionid());
+                log.info("[广告记录] 更新is_deleted成功，externalUserId:{}, unionid:{}", externalUserId, weCustomer.getUnionid());
+            }
+        } catch (Exception e) {
+            log.error("[广告记录] 更新is_deleted异常，externalUserId:{}, e:{}", externalUserId, ExceptionUtils.getStackTrace(e));
         }
     }
 }

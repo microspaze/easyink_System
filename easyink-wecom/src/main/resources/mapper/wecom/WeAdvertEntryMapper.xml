@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyink.wecom.mapper.WeAdvertEntryMapper">
+
+    <!--根据渠道列表获取广告记录统计数据-->
+    <select id="selectAdvertStatisticByChannels" resultType="com.easyink.wecom.domain.WeAdvertEntry">
+        SELECT
+            COUNT(*) AS totalCnt,
+            SUM(is_formed) AS formedCnt,
+            SUM(is_paid) AS paidCnt,
+            SUM(is_added) AS addedCnt,
+            SUM(is_deleted) AS deletedCnt
+        FROM we_advert_entry
+        WHERE channel IN
+        <foreach collection="channelList" item="channel" open="(" separator="," close=")">
+            #{channel}
+        </foreach>
+        <if test="beginDate != null and beginDate != ''">
+            AND create_time &gt;= #{beginDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+        </if>
+    </select>
+
+    <!--根据渠道列表获取广告记录统计数据（按渠道分组）-->
+    <select id="selectAdvertStatisticGroupByChannel" resultType="com.easyink.wecom.domain.WeAdvertEntry">
+        SELECT
+            channel,
+            COUNT(*) AS totalCnt,
+            SUM(is_formed) AS formedCnt,
+            SUM(is_paid) AS paidCnt,
+            SUM(is_added) AS addedCnt,
+            SUM(is_deleted) AS deletedCnt
+        FROM we_advert_entry
+        WHERE channel IN
+        <foreach collection="channelList" item="channel" open="(" separator="," close=")">
+            #{channel}
+        </foreach>
+        <if test="beginDate != null and beginDate != ''">
+            AND create_time &gt;= #{beginDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+        </if>
+        GROUP BY channel
+    </select>
+
+</mapper>

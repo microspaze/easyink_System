@@ -110,15 +110,17 @@ public class WeCallBackAddExternalContactImpl extends WeEventStrategy {
     private final WeCorpAccountService weCorpAccountService;
     private final WeEmpleCodeChannelMapper weEmpleCodeChannelMapper;
     private final CustomerAssistantService customerAssistantService;
+    private final WeAdvertEntryService weAdvertEntryService;
 
     @Autowired
-    public WeCallBackAddExternalContactImpl(WeUserService weUserService, EmpleStatisticRedisCache empleStatisticRedisCache, WeEmpleCodeStatisticMapper weEmpleCodeStatisticMapper, WeCorpAccountService weCorpAccountService, WeEmpleCodeChannelMapper weEmpleCodeChannelMapper, CustomerAssistantService customerAssistantService) {
+    public WeCallBackAddExternalContactImpl(WeUserService weUserService, EmpleStatisticRedisCache empleStatisticRedisCache, WeEmpleCodeStatisticMapper weEmpleCodeStatisticMapper, WeCorpAccountService weCorpAccountService, WeEmpleCodeChannelMapper weEmpleCodeChannelMapper, CustomerAssistantService customerAssistantService, WeAdvertEntryService weAdvertEntryService) {
         this.weUserService = weUserService;
         this.empleStatisticRedisCache = empleStatisticRedisCache;
         this.weEmpleCodeStatisticMapper = weEmpleCodeStatisticMapper;
         this.weCorpAccountService = weCorpAccountService;
         this.weEmpleCodeChannelMapper = weEmpleCodeChannelMapper;
         this.customerAssistantService = customerAssistantService;
+        this.weAdvertEntryService = weAdvertEntryService;
     }
 
 
@@ -194,6 +196,30 @@ public class WeCallBackAddExternalContactImpl extends WeEventStrategy {
         }
         // 客户轨迹记录 : 添加员工
         weCustomerTrajectoryService.saveActivityRecord(corpId, message.getUserId(), message.getExternalUserId(), CustomerTrajectoryEnums.SubType.ADD_USER.getType());
+        // 更新广告记录的is_added字段
+        updateAdvertEntryIsAdded(corpId, message.getExternalUserId());
+    }
+
+    /**
+     * 更新广告记录的is_added字段
+     *
+     * @param corpId         企业ID
+     * @param externalUserId 客户externalUserId
+     */
+    private void updateAdvertEntryIsAdded(String corpId, String externalUserId) {
+        try {
+            // 获取客户信息以获取unionid
+            WeCustomer weCustomer = weCustomerService.getOne(new LambdaQueryWrapper<WeCustomer>()
+                    .eq(WeCustomer::getExternalUserid, externalUserId)
+                    .eq(WeCustomer::getCorpId, corpId)
+                    .last(GenConstants.LIMIT_1));
+            if (weCustomer != null && StringUtils.isNotBlank(weCustomer.getUnionid())) {
+                weAdvertEntryService.updateIsAddedByUnionid(weCustomer.getUnionid());
+                log.info("[广告记录] 更新is_added成功，externalUserId:{}, unionid:{}", externalUserId, weCustomer.getUnionid());
+            }
+        } catch (Exception e) {
+            log.error("[广告记录] 更新is_added异常，externalUserId:{}, e:{}", externalUserId, ExceptionUtils.getStackTrace(e));
+        }
     }
 
     /**

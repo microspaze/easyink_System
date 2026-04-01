@@ -7,6 +7,8 @@ import com.easyink.common.enums.ResultTip;
 import com.easyink.common.utils.PageInfoUtil;
 import com.easyink.wecom.domain.dto.statistics.*;
 import com.easyink.wecom.domain.vo.statistics.*;
+import com.easyink.wecom.domain.vo.statistics.advert.AdvertChannelVO;
+import com.easyink.wecom.domain.vo.statistics.advert.AdvertStatisticVO;
 import com.easyink.wecom.domain.vo.statistics.emplecode.EmpleCodeDateVO;
 import com.easyink.wecom.domain.vo.statistics.emplecode.EmpleCodeUserVO;
 import com.easyink.wecom.domain.vo.statistics.emplecode.EmpleCodeVO;
@@ -42,6 +44,7 @@ public class StatisticsController extends BaseController {
     private final WeTagService weTagService;
     private final WeGroupTagService weGroupTagService;
     private final WeEmpleCodeStatisticService weEmpleCodeStatisticService;
+    private final WeAdvertEntryService weAdvertEntryService;
 
     @PostMapping("/emple/history/update")
     @ApiOperation("从活码分析表更新活码统计表历史旧数据")
@@ -300,5 +303,21 @@ public class StatisticsController extends BaseController {
     public AjaxResult exportEmpleDate(@RequestBody EmpleCodeStatisticDTO dto) {
         dto.setCorpId(LoginTokenService.getLoginUser().getCorpId());
         return AjaxResult.success(weEmpleCodeStatisticService.exportEmpleDate(dto));
+    }
+
+    @PostMapping("/advert/total")
+    @ApiOperation("广告统计-数据总览")
+    public AjaxResult<AdvertStatisticVO> getAdvertTotal(@RequestBody @Validated AdvertStatisticDTO dto) {
+        dto.setCorpId(LoginTokenService.getLoginUser().getCorpId());
+        return AjaxResult.success(weAdvertEntryService.getAdvertTotal(dto));
+    }
+
+    @PostMapping("/advert/channel/list")
+    @ApiOperation("广告统计-渠道维度")
+    public TableDataInfo<AdvertChannelVO> getAdvertChannelList(@RequestBody @Validated AdvertStatisticDTO dto) {
+        dto.setCorpId(LoginTokenService.getLoginUser().getCorpId());
+        PageInfoUtil.setPage();
+        List<AdvertChannelVO> list = weAdvertEntryService.getAdvertChannelList(dto);
+        return getDataTable(list);
     }
 }

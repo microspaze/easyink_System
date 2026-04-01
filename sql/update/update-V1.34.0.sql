@@ -33,3 +33,28 @@ ALTER TABLE app_id_info CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general
 ALTER TABLE app_callback_setting CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 -- 2023-10-30 lcy 为we_user_customer_message_statistics表添加索引 Tower 任务: 数据统计日期维度接口优化 ( https://tower.im/teams/636204/todos/77121 )
 ALTER TABLE we_user_customer_message_statistics ADD INDEX `idx_corp_external_id_send_time` (`corp_id`,`external_userid`,`user_id`,`send_time`) COMMENT '企业ID、客户ID、发送时间普通索引';
+
+-- 2026-04-01 广告进线数据统计功能
+-- 广告记录表
+CREATE TABLE IF NOT EXISTS `we_advert_entry` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '记录ID',
+  `platform` varchar(20) DEFAULT NULL COMMENT '广告平台，gdtwx: 微信广点通，gdtqz：QQ广点通，juldy: 抖音巨量引擎',
+  `channel` varchar(30) DEFAULT NULL COMMENT '渠道信息，对应we_emple_code表中的state字段',
+  `clickid` varchar(300) DEFAULT NULL COMMENT '广告点击ID，不同平台对应，gdtwx: gdt_vid, gdtqz: qz_gdt, juldy: clickid',
+  `unionid` varchar(32) DEFAULT NULL COMMENT '用户UNIONID，由广告展示端提交，主要来自小程序',
+  `mobile` varchar(20) DEFAULT NULL COMMENT '用户已验证手机号，小程序快捷授权或验证码验证',
+  `remark` varchar(50) DEFAULT NULL COMMENT '备注信息，用于保存表单提交信息，如股票代码、股票名称',
+  `is_formed` tinyint(4) DEFAULT '0' COMMENT '是否提交表单，1：已提交，0：未提交',
+  `is_paid` tinyint(4) DEFAULT '0' COMMENT '是否支付，1：已支付，0：未支付',
+  `is_added` tinyint(4) DEFAULT '0' COMMENT '是否添加业务员企微，1：已添加，0：未添加',
+  `is_deleted` tinyint(4) DEFAULT '0' COMMENT '是否流失，1：已流失，0：未流失',
+  `is_callbacked` tinyint(4) DEFAULT '0' COMMENT '是否回调成功，1：已回调，0：未回调',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  `callback_time` datetime DEFAULT NULL COMMENT '回调时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_unionid` (`unionid`),
+  KEY `idx_channel` (`channel`),
+  KEY `idx_create_time` (`create_time`),
+  KEY `idx_mobile` (`mobile`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='广告记录表';
