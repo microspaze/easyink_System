@@ -58,3 +58,9 @@ CREATE TABLE IF NOT EXISTS `we_advert_entry` (
   KEY `idx_create_time` (`create_time`),
   KEY `idx_mobile` (`mobile`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='广告记录表';
+
+-- 广告统计路由
+INSERT INTO `sys_menu` (`menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES ('广告统计', 2327, 2, 'advertStatistics', 'drainageAnalysis/advertStatistics/index', 1, 'C', '0', '0', NULL, '#', 'admin', '2026-04-01 13:58:05', '', NULL, '');
+
+
+
