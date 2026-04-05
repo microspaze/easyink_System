@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS `we_advert_entry` (
   `is_added` tinyint(4) DEFAULT '0' COMMENT '是否添加业务员企微，1：已添加，0：未添加',
   `is_deleted` tinyint(4) DEFAULT '0' COMMENT '是否流失，1：已流失，0：未流失',
   `is_callbacked` tinyint(4) DEFAULT '0' COMMENT '是否回调成功，1：已回调，0：未回调',
+  `callback_type` varchar(30) DEFAULT NULL COMMENT '广告回调类型',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime DEFAULT NULL COMMENT '更新时间',
   `callback_time` datetime DEFAULT NULL COMMENT '回调时间',
@@ -58,6 +59,11 @@ CREATE TABLE IF NOT EXISTS `we_advert_entry` (
   KEY `idx_create_time` (`create_time`),
   KEY `idx_mobile` (`mobile`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='广告记录表';
+
+-- 为we_advert_entry表添加回调相关索引
+ALTER TABLE we_advert_entry ADD INDEX `idx_is_callbacked` (`is_callbacked`);
+ALTER TABLE we_advert_entry ADD INDEX `idx_platform` (`platform`);
+ALTER TABLE we_advert_entry ADD INDEX `idx_callback_type` (`callback_type`);
 
 -- 广告统计路由
 INSERT INTO `sys_menu` (`menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES ('广告统计', 2327, 2, 'advertStatistics', 'drainageAnalysis/advertStatistics/index', 1, 'C', '0', '0', NULL, '#', 'admin', '2026-04-01 13:58:05', '', NULL, '');

@@ -1,7 +1,7 @@
 package com.easyink.wecom.service;
 
 import com.easyink.wecom.domain.WeAdvertEntry;
-import com.easyink.wecom.domain.dto.statistics.AdvertStatisticDTO;
+import com.easyink.wecom.domain.dto.statistics.*;
 import com.easyink.wecom.domain.vo.statistics.advert.AdvertChannelVO;
 import com.easyink.wecom.domain.vo.statistics.advert.AdvertStatisticVO;
 
@@ -55,4 +55,23 @@ public interface WeAdvertEntryService {
      * @return state列表
      */
     List<String> getStateListByEmpleCodeIds(String corpId, List<Long> empleCodeIdList);
+
+    /**
+     * 同步广告数据（如果存在则更新，不存在则创建）
+     *
+     * @param dto 广告数据DTO
+     * @return 是否成功
+     */
+    boolean syncAdvertData(AdvertSyncDTO dto);
+
+    /**
+     * 执行广告回调
+     *
+     * @param state        客户添加时的state
+     * @param unionid      客户的unionId
+     * @param mobile       客户的手机号
+     * @param corpId       企业ID
+     * @return 是否执行成功
+     */
+    boolean executeAdvertCallback(String state, String unionid);
 }

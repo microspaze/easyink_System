@@ -62,6 +62,9 @@ public class WeAdvertEntry implements Serializable {
     @ApiModelProperty("是否回调成功，1：已回调，0：未回调")
     private Integer isCallbacked;
 
+    @ApiModelProperty("广告回调类型")
+    private String callbackType;
+
     @ApiModelProperty("创建时间")
     private Date createTime;
 

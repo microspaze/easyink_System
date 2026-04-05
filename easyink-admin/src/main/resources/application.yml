@@ -590,3 +590,19 @@ management:
           base-url: #[*]
           push-rate: 15s
           job: ${spring.application.name}
+
+# 广告渠道回调配置
+gdt:
+  account-id: ${GDT_ACCOUNT_ID:}
+  access-token: ${GDT_ACCESS_TOKEN:}
+  user-action-set-id: ${GDT_USER_ACTION_SET_ID:}
+  user-action-api: ${GDT_USER_ACTION_API:https://api.e.qq.com/v3.0/user_actions/add}
+  enabled: false
+
+oceanengine:
+  callback-url: ${DOUYIN_CALLBACK_API:https://analytics.oceanengine.com/api/v2/conversion}
+  enabled: true
+
+advert:
+  sync-token: ${ADVERT_SYNC_TOKEN:ecac9669-3040-11f1-a9b9-02420aff0106}
+  sync-enabled: true

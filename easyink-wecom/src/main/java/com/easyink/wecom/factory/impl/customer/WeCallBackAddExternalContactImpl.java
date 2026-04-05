@@ -197,18 +197,19 @@ public class WeCallBackAddExternalContactImpl extends WeEventStrategy {
         // 客户轨迹记录 : 添加员工
         weCustomerTrajectoryService.saveActivityRecord(corpId, message.getUserId(), message.getExternalUserId(), CustomerTrajectoryEnums.SubType.ADD_USER.getType());
         // 更新广告记录的is_added字段
-        updateAdvertEntryIsAdded(corpId, message.getExternalUserId());
+        updateAdvertEntryIsAdded(corpId, message.getExternalUserId(), message.getState());
     }
 
     /**
-     * 更新广告记录的is_added字段
+     * 更新广告记录的is_added字段，并执行广告回调
      *
      * @param corpId         企业ID
      * @param externalUserId 客户externalUserId
+     * @param state          客户添加时的state
      */
-    private void updateAdvertEntryIsAdded(String corpId, String externalUserId) {
+    private void updateAdvertEntryIsAdded(String corpId, String externalUserId, String state) {
         try {
-            // 获取客户信息以获取unionid
+            // 获取客户信息以获取unionid和手机号
             WeCustomer weCustomer = weCustomerService.getOne(new LambdaQueryWrapper<WeCustomer>()
                     .eq(WeCustomer::getExternalUserid, externalUserId)
                     .eq(WeCustomer::getCorpId, corpId)
@@ -216,6 +217,9 @@ public class WeCallBackAddExternalContactImpl extends WeEventStrategy {
             if (weCustomer != null && StringUtils.isNotBlank(weCustomer.getUnionid())) {
                 weAdvertEntryService.updateIsAddedByUnionid(weCustomer.getUnionid());
                 log.info("[广告记录] 更新is_added成功，externalUserId:{}, unionid:{}", externalUserId, weCustomer.getUnionid());
+
+                // 执行广告回调
+                weAdvertEntryService.executeAdvertCallback(state, weCustomer.getUnionid());
             }
         } catch (Exception e) {
             log.error("[广告记录] 更新is_added异常，externalUserId:{}, e:{}", externalUserId, ExceptionUtils.getStackTrace(e));
