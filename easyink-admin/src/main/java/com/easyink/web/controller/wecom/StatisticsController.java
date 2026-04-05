@@ -5,7 +5,7 @@ import com.easyink.common.core.domain.AjaxResult;
 import com.easyink.common.core.page.TableDataInfo;
 import com.easyink.common.enums.ResultTip;
 import com.easyink.common.utils.PageInfoUtil;
-import com.easyink.common.enums.ResultTip;
+import com.easyink.wecom.domain.dto.statistics.*;
 import com.easyink.wecom.domain.vo.statistics.*;
 import com.easyink.wecom.domain.vo.statistics.advert.AdvertChannelVO;
 import com.easyink.wecom.domain.vo.statistics.advert.AdvertStatisticVO;
