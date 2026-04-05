@@ -5,11 +5,7 @@ import com.easyink.common.core.domain.AjaxResult;
 import com.easyink.common.core.page.TableDataInfo;
 import com.easyink.common.enums.ResultTip;
 import com.easyink.common.utils.PageInfoUtil;
-import com.easyink.common.config.AdvertConfig;
 import com.easyink.common.enums.ResultTip;
-import com.easyink.common.exception.CustomException;
-import com.easyink.wecom.domain.dto.statistics.AdvertSyncDTO;
-import com.easyink.wecom.domain.dto.statistics.*;
 import com.easyink.wecom.domain.vo.statistics.*;
 import com.easyink.wecom.domain.vo.statistics.advert.AdvertChannelVO;
 import com.easyink.wecom.domain.vo.statistics.advert.AdvertStatisticVO;
@@ -49,7 +45,6 @@ public class StatisticsController extends BaseController {
     private final WeGroupTagService weGroupTagService;
     private final WeEmpleCodeStatisticService weEmpleCodeStatisticService;
     private final WeAdvertEntryService weAdvertEntryService;
-    private final AdvertConfig advertConfig;
 
     @PostMapping("/emple/history/update")
     @ApiOperation("从活码分析表更新活码统计表历史旧数据")
@@ -324,20 +319,5 @@ public class StatisticsController extends BaseController {
         PageInfoUtil.setPage();
         List<AdvertChannelVO> list = weAdvertEntryService.getAdvertChannelList(dto);
         return getDataTable(list);
-    }
-
-    @GetMapping("/advert/sync")
-    @ApiOperation("广告数据同步接口")
-    public AjaxResult syncAdvertData(@RequestParam String token, @RequestBody @Validated AdvertSyncDTO dto) {
-        // 验证token
-        if (advertConfig == null || !advertConfig.getSyncToken().equals(token)) {
-            throw new CustomException(ResultTip.TIP_GENERAL_FORBIDDEN);
-        }
-        boolean success = weAdvertEntryService.syncAdvertData(dto);
-        if (success) {
-            return AjaxResult.success("数据同步成功");
-        } else {
-            return AjaxResult.error("数据同步失败");
-        }
     }
 }
