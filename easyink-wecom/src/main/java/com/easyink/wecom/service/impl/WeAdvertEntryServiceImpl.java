@@ -340,9 +340,9 @@ public class WeAdvertEntryServiceImpl implements WeAdvertEntryService {
             }
 
             boolean success = doCallback(entry);
+            // 不管回调是否成功，都更新unionid和is_callbacked状态
+            weAdvertEntryMapper.updateIsCallbacked(entry.getId(), success ? 1 : 0, unionid);
             if (success) {
-                // 更新回调状态
-                weAdvertEntryMapper.updateIsCallbacked(entry.getId(), 1);
                 log.info("[广告回调] 回调成功，记录id: {}", entry.getId());
             } else {
                 allSuccess = false;
