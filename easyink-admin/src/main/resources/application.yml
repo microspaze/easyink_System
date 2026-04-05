@@ -112,6 +112,7 @@ ruoyi:
       - /favicon.ico
       - /basic/**
       - /wecom/callback/**
+      - /system/advert/**
       - /wecom/chat/collection/list
       - /wecom/chat/collection/cancleCollection
       - /wecom/chat/collection/addCollection
