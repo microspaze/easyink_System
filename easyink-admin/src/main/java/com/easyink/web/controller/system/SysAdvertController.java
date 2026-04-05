@@ -31,7 +31,7 @@ public class SysAdvertController {
         this.advertConfig = advertConfig;
     }
 
-    @GetMapping("/sync")
+    @PostMapping("/sync")
     @ApiOperation("广告数据同步接口")
     public AjaxResult<Void> syncAdvertData(@RequestParam String token, @RequestBody @Validated AdvertSyncDTO dto) {
         // 验证token
