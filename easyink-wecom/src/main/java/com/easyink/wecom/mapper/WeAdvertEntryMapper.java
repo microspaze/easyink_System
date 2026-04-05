@@ -115,7 +115,7 @@ public interface WeAdvertEntryMapper extends BaseMapper<WeAdvertEntry> {
      * @return 更新条数
      */
     @Update("UPDATE we_advert_entry SET is_callbacked = #{isCallbacked}, " +
-            "unionid = #{unionid}, callback_time = NOW(), update_time = NOW() " +
+            "unionid = #{unionid}, is_added = #{isAdded}, callback_time = NOW(), update_time = NOW() " +
             "WHERE id = #{id}")
-    int updateIsCallbacked(@Param("id") Long id, @Param("isCallbacked") Integer isCallbacked, @Param("unionid") String unionid);
+    int updateIsCallbacked(@Param("id") Long id, @Param("isCallbacked") Integer isCallbacked, @Param("unionid") String unionid, @Param("isAdded") Integer isAdded);
 }
