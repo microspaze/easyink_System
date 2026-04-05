@@ -105,7 +105,7 @@ public class GdtCallbackServiceImpl implements AdvertCallbackService {
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .build();
 
-        RequestBody body = RequestBody.create(jsonBody, JSON_TYPE);
+        RequestBody body = RequestBody.create(JSON_TYPE, jsonBody);
         Request request = new Request.Builder()
                 .url(url)
                 .post(body)
