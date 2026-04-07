@@ -100,6 +100,7 @@
                weca.user_id,
                SUM(CASE WHEN weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@ADD.type}' THEN 1 ELSE 0 END) AS newCustomerCnt,
                SUM(CASE WHEN weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}' THEN 1 ELSE 0 END) AS lossCustomerCnt,
+               SUM(CASE WHEN weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}' AND wfcr.delete_time IS NOT NULL AND DATE(wfcr.create_time) = DATE(wfcr.delete_time) THEN 1 ELSE 0 END) AS lossNewCustomerCnt,
                SUM(CASE WHEN weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}' AND wfcr.delete_time IS NOT NULL AND TIMESTAMPDIFF(HOUR, wfcr.create_time, wfcr.delete_time) &lt;= 24 THEN 1 ELSE 0 END) AS loss24hCustomerCnt,
                SUM(CASE WHEN weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}' AND wfcr.delete_time IS NOT NULL AND TIMESTAMPDIFF(HOUR, wfcr.create_time, wfcr.delete_time) &lt;= 48 THEN 1 ELSE 0 END) AS loss48hCustomerCnt,
                weca.`add_code_time` AS `time`

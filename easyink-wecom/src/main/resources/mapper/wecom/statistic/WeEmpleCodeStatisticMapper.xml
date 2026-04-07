@@ -5,12 +5,12 @@
 <mapper namespace="com.easyink.wecom.mapper.statistic.WeEmpleCodeStatisticMapper">
     <!--批量插入或更新统计数据-->
     <insert id="batchInsertOrUpdate">
-        INSERT INTO we_emple_code_statistic (corp_id, emple_code_id, user_id, accumulate_customer_cnt, retain_customer_cnt, new_customer_cnt, loss_customer_cnt, loss_24h_customer_cnt, loss_48h_customer_cnt, `statistics_time`)
+        INSERT INTO we_emple_code_statistic (corp_id, emple_code_id, user_id, accumulate_customer_cnt, retain_customer_cnt, new_customer_cnt, loss_customer_cnt, loss_new_customer_cnt, loss_24h_customer_cnt, loss_48h_customer_cnt, `statistics_time`)
         VALUES
         <foreach collection="list" item="item" separator=",">
             (
             #{item.corpId}, #{item.empleCodeId}, #{item.userId}, #{item.accumulateCustomerCnt},
-            #{item.retainCustomerCnt}, #{item.newCustomerCnt}, #{item.lossCustomerCnt}, #{item.loss24hCustomerCnt}, #{item.loss48hCustomerCnt}, #{item.time}
+            #{item.retainCustomerCnt}, #{item.newCustomerCnt}, #{item.lossCustomerCnt}, #{item.lossNewCustomerCnt}, #{item.loss24hCustomerCnt}, #{item.loss48hCustomerCnt}, #{item.time}
             )
         </foreach>
         ON DUPLICATE KEY UPDATE
@@ -18,6 +18,7 @@
         retain_customer_cnt = VALUES(retain_customer_cnt),
         new_customer_cnt = VALUES(new_customer_cnt),
         loss_customer_cnt = VALUES(loss_customer_cnt),
+        loss_new_customer_cnt = VALUES(loss_new_customer_cnt),
         loss_24h_customer_cnt = VALUES(loss_24h_customer_cnt),
         loss_48h_customer_cnt = VALUES(loss_48h_customer_cnt)
     </insert>

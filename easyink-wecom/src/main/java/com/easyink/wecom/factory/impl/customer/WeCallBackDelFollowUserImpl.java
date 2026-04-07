@@ -153,13 +153,17 @@ public class WeCallBackDelFollowUserImpl extends WeEventStrategy {
                     // 更新总流失客户数
                     empleStatisticRedisCache.addLossCustomerCnt(corpId, today, empleCodeId, userId);
                     // 计算客户添加到现在的小时数，判断是否24h或48h流失
-                    if (weFlowerCustomerRel.getCreateTime() != null) {
-                        long hoursSinceAdd = (System.currentTimeMillis() - weFlowerCustomerRel.getCreateTime().getTime()) / (1000 * 60 * 60);
+                    Date createTime = weFlowerCustomerRel.getCreateTime();
+                    if (createTime != null) {
+                        long hoursSinceAdd = (System.currentTimeMillis() - createTime.getTime()) / (1000 * 60 * 60);
                         if (hoursSinceAdd <= 48) {
                             empleStatisticRedisCache.addLoss48hCustomerCnt(corpId, today, empleCodeId, userId);
                         }
                         if (hoursSinceAdd <= 24) {
                             empleStatisticRedisCache.addLoss24hCustomerCnt(corpId, today, empleCodeId, userId);
+                        }
+                        if (today.equals(DateUtils.dateTime(createTime))) {
+                            empleStatisticRedisCache.addLossNewCustomerCnt(corpId, today, empleCodeId, userId);
                         }
                     }
                 }

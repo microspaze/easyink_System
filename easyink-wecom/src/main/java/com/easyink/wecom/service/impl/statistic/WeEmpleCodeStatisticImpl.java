@@ -389,6 +389,7 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
                 todayVO.handleRedisData(
                         redisData.getNewCustomerCnt() != null ? redisData.getNewCustomerCnt() : 0,
                         redisData.getLossCustomerCnt() != null ? redisData.getLossCustomerCnt() : 0,
+                        redisData.getLossNewCustomerCnt() != null ? redisData.getLossNewCustomerCnt() : 0,
                         redisData.getLoss24hCustomerCnt() != null ? redisData.getLoss24hCustomerCnt() : 0,
                         redisData.getLoss48hCustomerCnt() != null ? redisData.getLoss48hCustomerCnt() : 0
                 );
@@ -421,6 +422,7 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
         baseVO.handleRedisData(
                 redisData.getNewCustomerCnt() != null ? redisData.getNewCustomerCnt() : 0,
                 redisData.getLossCustomerCnt() != null ? redisData.getLossCustomerCnt() : 0,
+                redisData.getLossNewCustomerCnt() != null ? redisData.getLossNewCustomerCnt() : 0,
                 redisData.getLoss24hCustomerCnt() != null ? redisData.getLoss24hCustomerCnt() : 0,
                 redisData.getLoss48hCustomerCnt() != null ? redisData.getLoss48hCustomerCnt() : 0
         );
@@ -457,6 +459,7 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
                     resultData.handleRedisData(
                             redisData.getNewCustomerCnt() != null ? redisData.getNewCustomerCnt() : 0,
                             redisData.getLossCustomerCnt() != null ? redisData.getLossCustomerCnt() : 0,
+                            redisData.getLossNewCustomerCnt() != null ? redisData.getLossNewCustomerCnt() : 0,
                             redisData.getLoss24hCustomerCnt() != null ? redisData.getLoss24hCustomerCnt() : 0,
                             redisData.getLoss48hCustomerCnt() != null ? redisData.getLoss48hCustomerCnt() : 0
                     );
@@ -493,6 +496,7 @@ public class WeEmpleCodeStatisticImpl extends ServiceImpl<WeEmpleCodeStatisticMa
                     resultData.handleUserRedisData(
                             redisData.getNewCustomerCnt() != null ? redisData.getNewCustomerCnt() : 0,
                             redisData.getLossCustomerCnt() != null ? redisData.getLossCustomerCnt() : 0,
+                            redisData.getLossNewCustomerCnt() != null ? redisData.getLossNewCustomerCnt() : 0,
                             redisData.getLoss24hCustomerCnt() != null ? redisData.getLoss24hCustomerCnt() : 0,
                             redisData.getLoss48hCustomerCnt() != null ? redisData.getLoss48hCustomerCnt() : 0
                     );

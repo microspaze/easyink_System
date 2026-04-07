@@ -26,6 +26,9 @@ public class RedisEmpleStatisticBaseModel {
     @ApiModelProperty("流失客户数")
     private Integer lossCustomerCnt;
 
+    @ApiModelProperty("新客流失数")
+    private Integer lossNewCustomerCnt;
+
     @ApiModelProperty("24小时客户流失数")
     private Integer loss24hCustomerCnt;
 

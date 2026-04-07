@@ -179,6 +179,7 @@ public class WeEmpleCodeAnalyseServiceImpl extends ServiceImpl<WeEmpleCodeAnalys
                     .ifPresent(empleCodeStatistic -> {
                         result.setNewCustomerCnt(empleCodeStatistic.getNewCustomerCnt());
                         result.setLossCustomerCnt(empleCodeStatistic.getLossCustomerCnt());
+                        result.setLossNewCustomerCnt(empleCodeStatistic.getLossNewCustomerCnt());
                         result.setLoss24hCustomerCnt(empleCodeStatistic.getLoss24hCustomerCnt());
                         result.setLoss48hCustomerCnt(empleCodeStatistic.getLoss48hCustomerCnt());
                     });

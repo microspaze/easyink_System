@@ -132,7 +132,7 @@ public class EmpleCodeBaseVO {
      * @param redisLoss24hCustomerCnt redis中的24h流失客户数
      * @param redisLoss48hCustomerCnt redis中的48h流失客户数
      */
-    public void handleRedisData(int redisNewCustomerCnt, int redisLossCustomerCnt, int redisLoss24hCustomerCnt, int redisLoss48hCustomerCnt) {
+    public void handleRedisData(int redisNewCustomerCnt, int redisLossCustomerCnt, int redisLossNewCustomerCnt, int redisLoss24hCustomerCnt, int redisLoss48hCustomerCnt) {
         // 累计客户数： Redis的新增客户数 + 原来的累计客户数
         this.accumulateCustomerCnt += redisNewCustomerCnt;
         // 留存客户数： (Redis的新增客户数 - Redis的流失客户数) + 原来的留存客户数
@@ -141,6 +141,8 @@ public class EmpleCodeBaseVO {
         this.newCustomerCnt += redisNewCustomerCnt;
         // 流失客户数： Redis的流失客户数 + 原来的流失客户数
         this.lossCustomerCnt += redisLossCustomerCnt;
+        // 新客流失数： Redis的新客流失数 + 原来的新客流失数
+        this.lossNewCustomerCnt += redisLossNewCustomerCnt;
         // 24h流失客户数： Redis的24h流失客户数 + 原来的24h流失客户数
         this.loss24hCustomerCnt += redisLoss24hCustomerCnt;
         // 48h流失客户数： Redis的48h流失客户数 + 原来的48h流失客户数
