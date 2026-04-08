@@ -181,6 +181,27 @@ public class WeCallBackDelFollowUserImpl extends WeEventStrategy {
     }
 
     /**
+     * 更新广告记录的is_deleted字段
+     *
+     * @param corpId         企业ID
+     * @param externalUserId 客户externalUserId
+     */
+    private void updateAdvertEntryIsDeleted(String corpId, String externalUserId) {
+        try {
+            WeCustomer weCustomer = weCustomerService.getOne(new LambdaQueryWrapper<WeCustomer>()
+                    .eq(WeCustomer::getExternalUserid, externalUserId)
+                    .eq(WeCustomer::getCorpId, corpId)
+                    .last(GenConstants.LIMIT_1));
+            if (weCustomer != null && StringUtils.isNotBlank(weCustomer.getUnionid())) {
+                weAdvertEntryService.updateIsDeletedByUnionid(weCustomer.getUnionid());
+                log.info("[广告记录] del_follow_user更新is_deleted成功，externalUserId:{}, unionid:{}", externalUserId, weCustomer.getUnionid());
+            }
+        } catch (Exception e) {
+            log.error("[广告记录] del_follow_user更新is_deleted异常，externalUserId:{}, e:{}", externalUserId, ExceptionUtils.getStackTrace(e));
+        }
+    }
+
+    /**
      * 判断是否是获客链接添加的state
      *
      * @param state 来源state
