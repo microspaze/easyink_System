@@ -71,10 +71,12 @@ public class WeCallBackDelFollowUserImpl extends WeEventStrategy {
 
     private final EmpleStatisticRedisCache empleStatisticRedisCache;
     private final CustomerAssistantService customerAssistantService;
+    private final WeAdvertEntryService weAdvertEntryService;
 
-    public WeCallBackDelFollowUserImpl(EmpleStatisticRedisCache empleStatisticRedisCache, CustomerAssistantService customerAssistantService) {
+    public WeCallBackDelFollowUserImpl(EmpleStatisticRedisCache empleStatisticRedisCache, CustomerAssistantService customerAssistantService, WeAdvertEntryService weAdvertEntryService) {
         this.empleStatisticRedisCache = empleStatisticRedisCache;
         this.customerAssistantService = customerAssistantService;
+        this.weAdvertEntryService = weAdvertEntryService;
     }
 
     @Override
@@ -168,6 +170,8 @@ public class WeCallBackDelFollowUserImpl extends WeEventStrategy {
                     }
                 }
             }
+            // 更新广告记录的is_deleted字段
+            updateAdvertEntryIsDeleted(corpId, message.getExternalUserId());
             // 客户轨迹:记录删除跟进成员事件
             weCustomerTrajectoryService.saveActivityRecord(corpId, message.getUserId(), message.getExternalUserId(),
                     CustomerTrajectoryEnums.SubType.DEL_USER.getType());
