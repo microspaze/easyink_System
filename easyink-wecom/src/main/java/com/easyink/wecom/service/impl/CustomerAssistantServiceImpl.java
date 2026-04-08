@@ -494,7 +494,30 @@ public class CustomerAssistantServiceImpl implements CustomerAssistantService {
                 channelId = weEmpleCodeChannelMapper.getDefaultChannelIdByUrl(messageMap.getQrCode());
             }
             // 更新获客链接活码统计redis中的数据
-            empleStatisticRedisCache.addLossCustomerCnt(corpId, DateUtils.dateTime(new Date()), Long.valueOf(messageMap.getEmpleCodeId()), userId);
+            String today = DateUtils.dateTime(new Date());
+            Long empleCodeId = Long.valueOf(messageMap.getEmpleCodeId());
+            empleStatisticRedisCache.addLossCustomerCnt(corpId, today, empleCodeId, userId);
+            
+            // 查询客户添加时间，用于计算24h、48h和新客流失数
+            WeFlowerCustomerRel weFlowerCustomerRel = weFlowerCustomerRelService.getOne(new LambdaQueryWrapper<WeFlowerCustomerRel>()
+                    .eq(WeFlowerCustomerRel::getCorpId, corpId)
+                    .eq(WeFlowerCustomerRel::getUserId, userId)
+                    .eq(WeFlowerCustomerRel::getExternalUserid, externalUserId)
+                    .last(GenConstants.LIMIT_1));
+            if (weFlowerCustomerRel != null && weFlowerCustomerRel.getCreateTime() != null) {
+                Date createTime = weFlowerCustomerRel.getCreateTime();
+                long hoursSinceAdd = (System.currentTimeMillis() - createTime.getTime()) / (1000 * 60 * 60);
+                if (hoursSinceAdd <= 48) {
+                    empleStatisticRedisCache.addLoss48hCustomerCnt(corpId, today, empleCodeId, userId);
+                }
+                if (hoursSinceAdd <= 24) {
+                    empleStatisticRedisCache.addLoss24hCustomerCnt(corpId, today, empleCodeId, userId);
+                }
+                if (today.equals(DateUtils.dateTime(createTime))) {
+                    empleStatisticRedisCache.addLossNewCustomerCnt(corpId, today, empleCodeId, userId);
+                }
+            }
+            
             // 记录获客链接统计信息
             weEmpleCodeAnalyseService.saveAssistantAnalyse(corpId, userId, externalUserId, channelId, messageMap.getEmpleCodeId(), false);
         }
