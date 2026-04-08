@@ -237,15 +237,18 @@ public class WeCallBackAddExternalContactImpl extends WeEventStrategy {
      */
     private void sendCustomerAssistantWelcomeMsg(String state, String welcomeCode, String userId, String externalUserId, String corpId) {
         WeWelcomeMsg.WeWelcomeMsgBuilder weWelcomeMsgBuilder = WeWelcomeMsg.builder().welcome_code(welcomeCode);
-        SelectWeEmplyCodeWelcomeMsgVO messageMap = weEmpleCodeService.selectWelcomeMsgByState(state, corpId);
+        // 从state中分离额外标签信息：hk_1963898977023823872_tg_tag1,tag2,tag3
+        String[] stateParts = state.split(WeConstans.TAG_PREFIX, 2);
+        String pureState = (stateParts.length == 2) ? stateParts[0] : state;
+        SelectWeEmplyCodeWelcomeMsgVO messageMap = weEmpleCodeService.selectWelcomeMsgByState(pureState, corpId);
         if (messageMap == null) {
             // 将"hk_"前缀截取掉，得到渠道id作为state信息
-            String channelId = state.replace(CustomerAssistantConstants.STATE_PREFIX, StringUtils.EMPTY);
+            String channelId = pureState.replace(CustomerAssistantConstants.STATE_PREFIX, StringUtils.EMPTY);
             // 根据渠道id获取渠道对应的获客链接id信息
             WeEmpleCodeChannel channel = weEmpleCodeChannelMapper.getChannelById(channelId);
             // 若根据渠道id未查询到信息，则表示不是从获客链接添加的客户，停止处理
             if (channel == null) {
-                log.info("[获客链接发送欢迎语] 未查询到该state对应的获客链接信息，state:{},corpId:{},userId:{},externalUserId:{}", state, corpId, userId, externalUserId);
+                log.info("[获客链接发送欢迎语] 未查询到该state对应的获客链接信息，state:{},corpId:{},userId:{},externalUserId:{}", pureState, corpId, userId, externalUserId);
                 return;
             }
             messageMap = weEmpleCodeService.selectWelcomeMsgById(String.valueOf(channel.getEmpleCodeId()), corpId);
@@ -254,15 +257,16 @@ public class WeCallBackAddExternalContactImpl extends WeEventStrategy {
             weEmpleCodeService.buildCustomerAssistantWelcomeMsg(messageMap, corpId);
             //给好友发送消息
             SelectWeEmplyCodeWelcomeMsgVO finalMessageMap = messageMap;
+            String finalState = pureState;
             CompletableFuture.runAsync(() -> {
                 try {
-                    sendMessageToNewExternalUserId(weWelcomeMsgBuilder, finalMessageMap, getCustomerName(corpId, externalUserId), corpId, userId, externalUserId, state);
+                    sendMessageToNewExternalUserId(weWelcomeMsgBuilder, finalMessageMap, getCustomerName(corpId, externalUserId), corpId, userId, externalUserId, finalState);
                 } catch (Exception e) {
                     log.error("异步发送欢迎语消息异常：ex:{}", ExceptionUtils.getStackTrace(e));
                 }
             });
         } else if (WelcomeMsgTypeEnum.REDEEM_CODE_WELCOME_MSG_TYPE.getType().equals(messageMap.getWelcomeMsgType())) {
-            handleRedeemCodeWelcomeMsg(state, userId, externalUserId, corpId, weWelcomeMsgBuilder, messageMap, getCustomerName(corpId, externalUserId));
+            handleRedeemCodeWelcomeMsg(pureState, userId, externalUserId, corpId, weWelcomeMsgBuilder, messageMap, getCustomerName(corpId, externalUserId));
         }
     }
 

@@ -478,6 +478,11 @@ public class CustomerAssistantServiceImpl implements CustomerAssistantService {
             log.info("[获客链接删除回调处理] 参数缺失，停止处理，state:{}，corpId:{}，externalUserId:{}，userId:{}", state, corpId, externalUserId, userId);
             return;
         }
+        // 从state中分离额外标签信息：hk_1963898977023823872_tg_tag1,tag2,tag3
+        String[] stateParts = state.split(WeConstans.TAG_PREFIX, 2);
+        if (stateParts.length == 2) {
+            state = stateParts[0];
+        }
         String channelId = state.replace(CustomerAssistantConstants.STATE_PREFIX, StringUtils.EMPTY);
         WeEmpleCodeChannel channel = weEmpleCodeChannelMapper.getChannelById(channelId);
         if (channel != null) {
