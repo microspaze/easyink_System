@@ -31,52 +31,8 @@
         SUM( wecs.loss_customer_cnt ) AS lossCustomerCnt,
         SUM( wecs.loss_24h_customer_cnt ) AS loss24hCustomerCnt,
         SUM( wecs.loss_48h_customer_cnt ) AS loss48hCustomerCnt,
-        COALESCE(loss_new_cnt.cnt, 0) AS lossNewCustomerCnt
+        SUM( wecs.loss_new_customer_cnt ) AS lossNewCustomerCnt
         FROM we_emple_code_statistic wecs
-        LEFT JOIN (
-            SELECT weca.corp_id,
-                <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
-                    weca.emple_code_id,
-                </if>
-                <if test="userIds != null and userIds.size() > 0">
-                    weca.user_id,
-                </if>
-                COUNT(0) AS cnt
-            FROM we_emple_code_analyse weca
-            INNER JOIN we_flower_customer_rel wfcr ON weca.corp_id = wfcr.corp_id
-                AND weca.user_id = wfcr.user_id
-                AND weca.external_userid = wfcr.external_userid
-            WHERE weca.corp_id = #{corpId}
-            AND weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}'
-            AND DATE(wfcr.create_time) = DATE(wfcr.delete_time)
-            AND weca.add_time &gt;= #{beginDate}
-            AND weca.add_time &lt;= #{endDate}
-            <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
-                AND weca.emple_code_id IN
-                <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
-                     #{empleCodeId}
-                </foreach>
-            </if>
-            <if test="userIds != null and userIds.size() > 0">
-                AND weca.user_id IN
-                <foreach collection="userIds" item="userId" open="(" separator="," close=")">
-                    #{userId}
-                </foreach>
-            </if>
-            GROUP BY weca.corp_id
-            <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
-                , weca.emple_code_id
-            </if>
-            <if test="userIds != null and userIds.size() > 0">
-                , weca.user_id
-            </if>
-        ) loss_new_cnt ON wecs.corp_id = loss_new_cnt.corp_id
-        <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
-            AND wecs.emple_code_id = loss_new_cnt.emple_code_id
-        </if>
-        <if test="userIds != null and userIds.size() > 0">
-            AND wecs.user_id = loss_new_cnt.user_id
-        </if>
         WHERE wecs.corp_id = #{corpId}
         <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
             AND wecs.emple_code_id IN
@@ -162,36 +118,11 @@
         SUM( wecs.loss_customer_cnt ) AS lossCustomerCnt,
         SUM( wecs.loss_24h_customer_cnt ) AS loss24hCustomerCnt,
         SUM( wecs.loss_48h_customer_cnt ) AS loss48hCustomerCnt,
-        COALESCE(loss_new_cnt.cnt, 0) AS lossNewCustomerCnt
+        SUM( wecs.loss_new_customer_cnt ) AS lossNewCustomerCnt
         FROM
         we_emple_code_statistic wecs
         LEFT JOIN we_user wu ON wecs.corp_id = wu.corp_id AND wecs.user_id = wu.user_id
         LEFT JOIN we_department wd ON wu.corp_id = wd.corp_id AND wu.main_department = wd.id
-        LEFT JOIN (
-            SELECT weca.corp_id, weca.user_id, COUNT(0) AS cnt
-            FROM we_emple_code_analyse weca
-            INNER JOIN we_flower_customer_rel wfcr ON weca.corp_id = wfcr.corp_id
-                AND weca.user_id = wfcr.user_id
-                AND weca.external_userid = wfcr.external_userid
-            WHERE weca.corp_id = #{corpId}
-            AND weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}'
-            AND DATE(wfcr.create_time) = DATE(wfcr.delete_time)
-            AND weca.add_time &gt;= #{beginDate}
-            AND weca.add_time &lt;= #{endDate}
-            <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
-                AND weca.emple_code_id IN
-                <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
-                     #{empleCodeId}
-                </foreach>
-            </if>
-            <if test="userIds != null and userIds.size() > 0">
-                AND weca.user_id IN
-                <foreach collection="userIds" item="userId" open="(" separator="," close=")">
-                    #{userId}
-                </foreach>
-            </if>
-            GROUP BY weca.corp_id, weca.user_id
-        ) loss_new_cnt ON wecs.corp_id = loss_new_cnt.corp_id AND wecs.user_id = loss_new_cnt.user_id
         WHERE wecs.corp_id = #{corpId}
         <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
             AND wecs.emple_code_id IN
@@ -225,35 +156,10 @@
         SUM( wecs.loss_customer_cnt ) AS lossCustomerCnt,
         SUM( wecs.loss_24h_customer_cnt ) AS loss24hCustomerCnt,
         SUM( wecs.loss_48h_customer_cnt ) AS loss48hCustomerCnt,
-        COALESCE(loss_new_cnt.cnt, 0) AS lossNewCustomerCnt
+        SUM( wecs.loss_new_customer_cnt ) AS lossNewCustomerCnt
         FROM
         we_emple_code_statistic wecs
         LEFT JOIN we_emple_code wec ON wecs.corp_id = wec.corp_id AND wecs.emple_code_id = wec.id
-        LEFT JOIN (
-            SELECT weca.corp_id, weca.emple_code_id, COUNT(0) AS cnt
-            FROM we_emple_code_analyse weca
-            INNER JOIN we_flower_customer_rel wfcr ON weca.corp_id = wfcr.corp_id
-                AND weca.user_id = wfcr.user_id
-                AND weca.external_userid = wfcr.external_userid
-            WHERE weca.corp_id = #{corpId}
-            AND weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}'
-            AND DATE(wfcr.create_time) = DATE(wfcr.delete_time)
-            AND weca.add_time &gt;= #{beginDate}
-            AND weca.add_time &lt;= #{endDate}
-            <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
-                AND weca.emple_code_id IN
-                <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
-                     #{empleCodeId}
-                </foreach>
-            </if>
-            <if test="userIds != null and userIds.size() > 0">
-                AND weca.user_id IN
-                <foreach collection="userIds" item="userId" open="(" separator="," close=")">
-                    #{userId}
-                </foreach>
-            </if>
-            GROUP BY weca.corp_id, weca.emple_code_id
-        ) loss_new_cnt ON wecs.corp_id = loss_new_cnt.corp_id AND wecs.emple_code_id = loss_new_cnt.emple_code_id
         WHERE wecs.corp_id = #{corpId}
         <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
             AND wecs.emple_code_id IN
@@ -309,34 +215,9 @@
         SUM( wecs.loss_customer_cnt ) AS lossCustomerCnt,
         SUM( wecs.loss_24h_customer_cnt ) AS loss24hCustomerCnt,
         SUM( wecs.loss_48h_customer_cnt ) AS loss48hCustomerCnt,
-        COALESCE(loss_new_cnt.cnt, 0) AS lossNewCustomerCnt
+        SUM( wecs.loss_new_customer_cnt ) AS lossNewCustomerCnt
         FROM
         we_emple_code_statistic wecs
-        LEFT JOIN (
-            SELECT weca.corp_id, DATE_FORMAT(weca.add_time, '%Y-%m-%d') AS add_date, COUNT(0) AS cnt
-            FROM we_emple_code_analyse weca
-            INNER JOIN we_flower_customer_rel wfcr ON weca.corp_id = wfcr.corp_id
-                AND weca.user_id = wfcr.user_id
-                AND weca.external_userid = wfcr.external_userid
-            WHERE weca.corp_id = #{corpId}
-            AND weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}'
-            AND DATE(wfcr.create_time) = DATE(wfcr.delete_time)
-            AND weca.add_time &gt;= #{beginDate}
-            AND weca.add_time &lt;= #{endDate}
-            <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
-                AND weca.emple_code_id IN
-                <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
-                     #{empleCodeId}
-                </foreach>
-            </if>
-            <if test="userIds != null and userIds.size() > 0">
-                AND weca.user_id IN
-                <foreach collection="userIds" item="userId" open="(" separator="," close=")">
-                    #{userId}
-                </foreach>
-            </if>
-            GROUP BY weca.corp_id, DATE_FORMAT(weca.add_time, '%Y-%m-%d')
-        ) loss_new_cnt ON wecs.corp_id = loss_new_cnt.corp_id AND wecs.`statistics_time` = loss_new_cnt.add_date
         WHERE wecs.corp_id = #{corpId}
         <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
             AND wecs.emple_code_id IN
