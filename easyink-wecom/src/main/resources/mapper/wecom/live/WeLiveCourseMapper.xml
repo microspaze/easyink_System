@@ -10,8 +10,8 @@
         <result property="roomId" column="room_id"/>
         <result property="title" column="title"/>
         <result property="description" column="description"/>
-        <result property="startTime" column="start_time"/>
-        <result property="endTime" column="end_time"/>
+        <result property="courseStartTime" column="start_time"/>
+        <result property="courseEndTime" column="end_time"/>
         <result property="weekDays" column="week_days"/>
         <result property="generateRecording" column="generate_recording"/>
         <result property="status" column="status"/>

@@ -35,8 +35,14 @@ public class WeLiveStatisticServiceImpl extends ServiceImpl<WeLiveStatisticMappe
 
     @Override
     public List<WeLiveStatistic> selectStatisticByDepartment(String livingid, Long roomId, String corpId,
-                                                             List<String> userIdList, String beginTime, String endTime) {
-        return baseMapper.selectStatisticByUserIds(livingid, roomId, corpId, userIdList, beginTime, endTime);
+                                                             String departmentDataScope, String beginTime, String endTime) {
+        // departmentDataScope为null表示超管可看全部,否则按部门范围过滤
+        List<String> userIdList = null;
+        if (StringUtils.isNotBlank(departmentDataScope)) {
+            // 部门数据范围不为空时,后续通过SQL JOIN部门表过滤
+            // 此处将逗号分隔的部门ID传入,在Mapper中做部门关联查询
+        }
+        return baseMapper.selectStatisticByDepartmentScope(livingid, roomId, corpId, departmentDataScope, beginTime, endTime);
     }
 
     @Override

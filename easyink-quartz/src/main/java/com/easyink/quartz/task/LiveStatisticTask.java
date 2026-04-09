@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 /**
  * 直播观看统计采集定时任务
  * invokeTarget: liveStatisticTask.execute
- * cron: 0 */1 * * * ?
+ * cron: 0 0/1 * * * ?
  *
  * @author easyink
  */

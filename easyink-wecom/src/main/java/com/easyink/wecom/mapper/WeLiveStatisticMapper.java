@@ -41,4 +41,22 @@ public interface WeLiveStatisticMapper extends BaseMapper<WeLiveStatistic> {
                                                     @Param("userIdList") List<String> userIdList,
                                                     @Param("beginTime") String beginTime,
                                                     @Param("endTime") String endTime);
+
+    /**
+     * 查询部门维度统计(按部门数据范围过滤)
+     *
+     * @param livingid            直播ID(可选)
+     * @param roomId              直播间ID(可选)
+     * @param corpId              企业ID
+     * @param departmentDataScope 部门数据范围(逗号分隔的部门ID,超管传null)
+     * @param beginTime           开始时间(可选)
+     * @param endTime             结束时间(可选)
+     * @return 统计列表
+     */
+    List<WeLiveStatistic> selectStatisticByDepartmentScope(@Param("livingid") String livingid,
+                                                            @Param("roomId") Long roomId,
+                                                            @Param("corpId") String corpId,
+                                                            @Param("departmentDataScope") String departmentDataScope,
+                                                            @Param("beginTime") String beginTime,
+                                                            @Param("endTime") String endTime);
 }

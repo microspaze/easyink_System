@@ -19,8 +19,8 @@
         <result property="pushStreamUrl" column="push_stream_url"/>
         <result property="transPushUrls" column="trans_push_urls"
                 typeHandler="com.easyink.wecom.handler.JsonStringListTypeHandler"/>
-        <result property="startTime" column="start_time"/>
-        <result property="endTime" column="end_time"/>
+        <result property="courseStartTime" column="start_time"/>
+        <result property="courseEndTime" column="end_time"/>
         <result property="generateRecording" column="generate_recording"/>
         <result property="livingStatus" column="living_status"/>
         <result property="txTaskId" column="tx_task_id"/>

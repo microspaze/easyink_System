@@ -30,5 +30,5 @@ public class LivingCodeVO {
 
     @ApiModelProperty("课程开始时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date startTime;
+    private Date courseStartTime;
 }

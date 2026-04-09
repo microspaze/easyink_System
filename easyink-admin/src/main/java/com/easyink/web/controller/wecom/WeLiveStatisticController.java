@@ -11,7 +11,6 @@ import com.easyink.wecom.service.WeLiveStatisticService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -65,10 +64,10 @@ public class WeLiveStatisticController extends BaseController {
             @RequestParam(required = false) String endTime) {
         LoginUser loginUser = LoginTokenService.getLoginUser();
         String corpId = loginUser.getCorpId();
-        List<String> dataScopeUserIds = loginUser.isSuperAdmin() ? null : loginUser.getDataScopeUserIds();
+        String dataScope = loginUser.isSuperAdmin() ? null : loginUser.getDepartmentDataScope();
         PageInfoUtil.setPage();
         List<WeLiveStatistic> list = weLiveStatisticService.selectStatisticByDepartment(
-                livingid, roomId, corpId, dataScopeUserIds, beginTime, endTime);
+                livingid, roomId, corpId, dataScope, beginTime, endTime);
         return getDataTable(list);
     }
 }

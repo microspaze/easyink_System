@@ -37,16 +37,16 @@ public interface WeLiveStatisticService extends IService<WeLiveStatistic> {
     /**
      * 查询部门维度统计
      *
-     * @param livingid   直播ID(可选)
-     * @param roomId     直播间ID(可选)
-     * @param corpId     企业ID
-     * @param userIdList 部门下员工ID列表
-     * @param beginTime  开始时间(可选)
-     * @param endTime    结束时间(可选)
+     * @param livingid            直播ID(可选)
+     * @param roomId              直播间ID(可选)
+     * @param corpId              企业ID
+     * @param departmentDataScope 部门数据范围(逗号分隔的部门ID,超管传null)
+     * @param beginTime           开始时间(可选)
+     * @param endTime             结束时间(可选)
      * @return 统计列表
      */
     List<WeLiveStatistic> selectStatisticByDepartment(String livingid, Long roomId, String corpId,
-                                                       List<String> userIdList, String beginTime, String endTime);
+                                                       String departmentDataScope, String beginTime, String endTime);
 
     /**
      * 保存或更新观看统计

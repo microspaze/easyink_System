@@ -105,9 +105,9 @@ public class WeLiveItemServiceImpl extends ServiceImpl<WeLiveItemMapper, WeLiveI
         WeLiveItem targetItem = null;
         for (WeLiveItem item : items) {
             if (LiveStatusEnum.NOT_START.getCode().equals(item.getLivingStatus())
-                    && item.getStartTime() != null
-                    && item.getStartTime().after(now)
-                    && item.getStartTime().before(after30Min)) {
+                    && item.getCourseStartTime() != null
+                    && item.getCourseStartTime().after(now)
+                    && item.getCourseStartTime().before(after30Min)) {
                 targetItem = item;
                 break;
             }
@@ -150,7 +150,7 @@ public class WeLiveItemServiceImpl extends ServiceImpl<WeLiveItemMapper, WeLiveI
         vo.setLivingid(targetItem.getLivingid());
         vo.setTitle(targetItem.getTitle());
         vo.setLivingStatus(targetItem.getLivingStatus());
-        vo.setStartTime(targetItem.getStartTime());
+        vo.setCourseStartTime(targetItem.getCourseStartTime());
         return vo;
     }
 
@@ -176,7 +176,7 @@ public class WeLiveItemServiceImpl extends ServiceImpl<WeLiveItemMapper, WeLiveI
         int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
         int customDay = dayOfWeek == 1 ? 7 : dayOfWeek - 1; // 转换为1=周一...7=周日
         String todayWeekDay = String.valueOf(customDay);
-        String todayDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        String todayDate = DateUtils.dateTimeNow("yyyy-MM-dd");
 
         for (Map.Entry<String, List<WeLiveRoom>> entry : corpRoomMap.entrySet()) {
             String corpId = entry.getKey();
@@ -220,8 +220,8 @@ public class WeLiveItemServiceImpl extends ServiceImpl<WeLiveItemMapper, WeLiveI
         try {
             // 构建今天的课程时间
             LocalDate today = LocalDate.now();
-            LocalTime startTime = LocalTime.parse(course.getStartTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
-            LocalTime endTime = LocalTime.parse(course.getEndTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+            LocalTime startTime = LocalTime.parse(course.getCourseStartTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+            LocalTime endTime = LocalTime.parse(course.getCourseEndTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
 
             Date startDateTime = Date.from(LocalDateTime.of(today, startTime).atZone(ZoneId.systemDefault()).toInstant());
             Date endDateTime = Date.from(LocalDateTime.of(today, endTime).atZone(ZoneId.systemDefault()).toInstant());
@@ -237,8 +237,8 @@ public class WeLiveItemServiceImpl extends ServiceImpl<WeLiveItemMapper, WeLiveI
                     .operatorUserid(room.getOperatorUserid())
                     .posterMediaId(room.getDefaultPosterMediaId())
                     .posterUrl(room.getDefaultPosterUrl())
-                    .startTime(startDateTime)
-                    .endTime(endDateTime)
+                    .courseStartTime(startDateTime)
+                    .courseEndTime(endDateTime)
                     .generateRecording(course.getGenerateRecording())
                     .livingStatus(LiveStatusEnum.NOT_START.getCode())
                     .delFlag(0)
@@ -305,7 +305,7 @@ public class WeLiveItemServiceImpl extends ServiceImpl<WeLiveItemMapper, WeLiveI
         notStartWrapper.eq(WeLiveItem::getDelFlag, 0)
                 .eq(WeLiveItem::getLivingStatus, LiveStatusEnum.NOT_START.getCode())
                 .isNotNull(WeLiveItem::getLivingid)
-                .le(WeLiveItem::getStartTime, new Date(System.currentTimeMillis() + 30 * 60 * 1000));
+                .le(WeLiveItem::getCourseStartTime, new Date(System.currentTimeMillis() + 30 * 60 * 1000));
         List<WeLiveItem> notStartItems = list(notStartWrapper);
 
         for (WeLiveItem item : notStartItems) {

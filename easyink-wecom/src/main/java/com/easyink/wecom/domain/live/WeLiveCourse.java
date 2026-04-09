@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.easyink.common.core.domain.BaseEntity;
-import com.easyink.common.utils.SnowFlakeUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -15,7 +14,6 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.time.LocalTime;
 
 /**
  * 直播课表对象 we_live_course
@@ -56,12 +54,12 @@ public class WeLiveCourse extends BaseEntity {
     @ApiModelProperty("开课时间(如09:00:00)")
     @NotBlank(message = "开课时间不能为空")
     @TableField("start_time")
-    private String startTime;
+    private String courseStartTime;
 
     @ApiModelProperty("结课时间(如11:00:00)")
     @NotBlank(message = "结课时间不能为空")
     @TableField("end_time")
-    private String endTime;
+    private String courseEndTime;
 
     @ApiModelProperty("开课周几,多个用逗号分隔(1-7,1=周一)")
     @NotBlank(message = "开课周几不能为空")

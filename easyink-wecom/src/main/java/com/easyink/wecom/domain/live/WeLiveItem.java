@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.easyink.common.core.domain.BaseEntity;
-import com.easyink.common.utils.SnowFlakeUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -86,12 +85,12 @@ public class WeLiveItem extends BaseEntity {
     @ApiModelProperty("课程开始时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @TableField("start_time")
-    private Date startTime;
+    private Date courseStartTime;
 
     @ApiModelProperty("课程结束时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @TableField("end_time")
-    private Date endTime;
+    private Date courseEndTime;
 
     @ApiModelProperty("是否生成录音: 0-否 1-是")
     @TableField("generate_recording")
