@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.easyink.common.enums.live.LiveStatusEnum;
+import com.easyink.common.enums.live.TxTaskStatusEnum;
 import com.easyink.common.utils.DateUtils;
 import com.easyink.common.utils.StringUtils;
 import com.easyink.wecom.client.WeLiveClient;
@@ -226,7 +227,7 @@ public class WeLiveItemServiceImpl extends ServiceImpl<WeLiveItemMapper, WeLiveI
             Date startDateTime = Date.from(LocalDateTime.of(today, startTime).atZone(ZoneId.systemDefault()).toInstant());
             Date endDateTime = Date.from(LocalDateTime.of(today, endTime).atZone(ZoneId.systemDefault()).toInstant());
 
-            // 先保存基础信息
+            // 先保存基础信息,将直播间的默认推流地址和播放地址复制到课程实例
             WeLiveItem item = WeLiveItem.builder()
                     .corpId(corpId)
                     .roomId(room.getId())
@@ -237,6 +238,8 @@ public class WeLiveItemServiceImpl extends ServiceImpl<WeLiveItemMapper, WeLiveI
                     .operatorUserid(room.getOperatorUserid())
                     .posterMediaId(room.getDefaultPosterMediaId())
                     .posterUrl(room.getDefaultPosterUrl())
+                    .pushStreamUrl(room.getDefaultPushUrl())
+                    .playStreamUrl(room.getDefaultPlayUrl())
                     .courseStartTime(startDateTime)
                     .courseEndTime(endDateTime)
                     .generateRecording(course.getGenerateRecording())
@@ -262,22 +265,22 @@ public class WeLiveItemServiceImpl extends ServiceImpl<WeLiveItemMapper, WeLiveI
 
             String livingid = createResp.getLivingid();
 
-            // 获取直播详情(推流地址)
-            String pushStreamUrl = null;
+            // 获取直播详情(企微推流地址)
+            String wecomPushStreamUrl = null;
             try {
                 Thread.sleep(1000); // 等待1秒确保企微数据生效
                 WeLivingInfoResp infoResp = weLiveClient.getLivingInfo(livingid, corpId);
                 if (infoResp != null && infoResp.isSuccess()) {
-                    pushStreamUrl = infoResp.getPushStreamUrl();
+                    wecomPushStreamUrl = infoResp.getPushStreamUrl();
                 }
             } catch (Exception e) {
                 log.error("获取直播详情失败, livingid={}: {}", livingid, e.getMessage(), e);
             }
 
-            // 合并推流地址列表
+            // 合并转推流地址列表: 企微推流地址作为转推目标 + 直播间配置的默认转推地址
             List<String> transPushUrls = new ArrayList<>();
-            if (StringUtils.isNotBlank(pushStreamUrl)) {
-                transPushUrls.add(pushStreamUrl);
+            if (StringUtils.isNotBlank(wecomPushStreamUrl)) {
+                transPushUrls.add(wecomPushStreamUrl);
             }
             if (CollectionUtils.isNotEmpty(room.getDefaultTransPushUrls())) {
                 transPushUrls.addAll(room.getDefaultTransPushUrls());
@@ -287,9 +290,14 @@ public class WeLiveItemServiceImpl extends ServiceImpl<WeLiveItemMapper, WeLiveI
             WeLiveItem updateItem = new WeLiveItem();
             updateItem.setId(item.getId());
             updateItem.setLivingid(livingid);
-            updateItem.setPushStreamUrl(pushStreamUrl);
             updateItem.setTransPushUrls(transPushUrls);
             updateById(updateItem);
+
+            // 当转推流地址不为空时,调用腾讯云直播API创建转推流任务
+            // 拉流地址为playStreamUrl(直播间的默认播放地址),转推到transPushUrls中的地址(主要是企微直播)
+            if (CollectionUtils.isNotEmpty(transPushUrls) && StringUtils.isNotBlank(item.getPlayStreamUrl())) {
+                createTxPullStreamTask(item.getId(), item.getPlayStreamUrl(), transPushUrls, startDateTime, endDateTime, corpId);
+            }
 
             log.info("创建课程实例成功, itemId={}, livingid={}", item.getId(), livingid);
         } catch (Exception e) {
@@ -451,6 +459,51 @@ public class WeLiveItemServiceImpl extends ServiceImpl<WeLiveItemMapper, WeLiveI
                 return LiveStatusEnum.EXPIRED.getCode();
             default:
                 return null;
+        }
+    }
+
+    /**
+     * 调用腾讯云直播API创建转推流任务
+     * 以playStreamUrl为拉流源,转推到transPushUrls中的地址
+     *
+     * @param itemId        课程实例ID
+     * @param playStreamUrl 拉流地址(播放地址)
+     * @param transPushUrls 转推目标地址列表
+     * @param startTime     课程开始时间
+     * @param endTime       课程结束时间
+     * @param corpId        企业ID
+     */
+    private void createTxPullStreamTask(Long itemId, String playStreamUrl, List<String> transPushUrls,
+                                         Date startTime, Date endTime, String corpId) {
+        try {
+            // TODO: 调用腾讯云直播 CreateLivePullStreamTask API
+            //  请求参数:
+            //   - PullStreamUrl: playStreamUrl (拉流地址)
+            //   - PushUrlList: transPushUrls (转推目标地址列表)
+            //   - StartTime: startTime.getTime() / 1000
+            //   - EndTime: endTime.getTime() / 1000
+            //  返回值中获取 TaskId
+            String taskId = null; // 临时占位,等API调用实现后赋值
+
+            if (StringUtils.isNotBlank(taskId)) {
+                // 更新转推流任务ID和状态
+                LambdaUpdateWrapper<WeLiveItem> wrapper = new LambdaUpdateWrapper<>();
+                wrapper.eq(WeLiveItem::getId, itemId)
+                       .set(WeLiveItem::getTxTaskId, taskId)
+                       .set(WeLiveItem::getTxTaskStatus, TxTaskStatusEnum.RUNNING.getCode());
+                update(wrapper);
+                log.info("创建腾讯云转推流任务成功, itemId={}, taskId={}, pullUrl={}, pushUrls={}",
+                        itemId, taskId, playStreamUrl, transPushUrls);
+            } else {
+                log.warn("创建腾讯云转推流任务未返回taskId, itemId={}", itemId);
+            }
+        } catch (Exception e) {
+            // 创建失败,更新任务状态为失败
+            LambdaUpdateWrapper<WeLiveItem> wrapper = new LambdaUpdateWrapper<>();
+            wrapper.eq(WeLiveItem::getId, itemId)
+                   .set(WeLiveItem::getTxTaskStatus, TxTaskStatusEnum.FAILED.getCode());
+            update(wrapper);
+            log.error("创建腾讯云转推流任务异常, itemId={}: {}", itemId, e.getMessage(), e);
         }
     }
 }

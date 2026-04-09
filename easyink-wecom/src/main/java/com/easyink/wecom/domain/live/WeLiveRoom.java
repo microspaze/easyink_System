@@ -64,9 +64,13 @@ public class WeLiveRoom extends BaseEntity {
     @TableField("default_poster_media_id")
     private String defaultPosterMediaId;
 
-    @ApiModelProperty("默认推流地址(企微)")
+    @ApiModelProperty("默认推流地址")
     @TableField("default_push_url")
     private String defaultPushUrl;
+
+    @ApiModelProperty("默认播放地址(拉流地址)")
+    @TableField("default_play_url")
+    private String defaultPlayUrl;
 
     @ApiModelProperty("默认转推流地址JSON数组")
     @TableField(value = "default_trans_push_urls", typeHandler = com.easyink.wecom.handler.JsonStringListTypeHandler.class)

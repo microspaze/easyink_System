@@ -17,6 +17,7 @@
         <result property="posterMediaId" column="poster_media_id"/>
         <result property="posterUrl" column="poster_url"/>
         <result property="pushStreamUrl" column="push_stream_url"/>
+        <result property="playStreamUrl" column="play_stream_url"/>
         <result property="transPushUrls" column="trans_push_urls"
                 typeHandler="com.easyink.wecom.handler.JsonStringListTypeHandler"/>
         <result property="courseStartTime" column="start_time"/>

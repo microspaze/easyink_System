@@ -74,9 +74,13 @@ public class WeLiveItem extends BaseEntity {
     @TableField("poster_url")
     private String posterUrl;
 
-    @ApiModelProperty("企微推流地址")
+    @ApiModelProperty("推流地址")
     @TableField("push_stream_url")
     private String pushStreamUrl;
+
+    @ApiModelProperty("播放地址(拉流地址)")
+    @TableField("play_stream_url")
+    private String playStreamUrl;
 
     @ApiModelProperty("转推流地址JSON数组")
     @TableField(value = "trans_push_urls", typeHandler = com.easyink.wecom.handler.JsonStringListTypeHandler.class)

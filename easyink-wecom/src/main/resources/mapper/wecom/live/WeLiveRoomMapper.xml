@@ -14,6 +14,7 @@
         <result property="defaultPosterUrl" column="default_poster_url"/>
         <result property="defaultPosterMediaId" column="default_poster_media_id"/>
         <result property="defaultPushUrl" column="default_push_url"/>
+        <result property="defaultPlayUrl" column="default_play_url"/>
         <result property="defaultTransPushUrls" column="default_trans_push_urls"
                 typeHandler="com.easyink.wecom.handler.JsonStringListTypeHandler"/>
         <result property="status" column="status"/>

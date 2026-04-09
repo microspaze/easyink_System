@@ -3,6 +3,12 @@
 -- =============================================
 
 -- ----------------------------
+-- 增量更新: 为已有表添加新字段
+-- ----------------------------
+ALTER TABLE `we_live_room` ADD COLUMN IF NOT EXISTS `default_play_url` VARCHAR(512) DEFAULT NULL COMMENT '默认播放地址(拉流地址)' AFTER `default_push_url`;
+ALTER TABLE `we_live_item` ADD COLUMN IF NOT EXISTS `play_stream_url` VARCHAR(512) DEFAULT NULL COMMENT '播放地址(拉流地址)' AFTER `push_stream_url`;
+
+-- ----------------------------
 -- 1. 直播间表
 -- ----------------------------
 DROP TABLE IF EXISTS `we_live_room`;
@@ -15,7 +21,8 @@ CREATE TABLE `we_live_room` (
     `operator_userid`           VARCHAR(64)     DEFAULT NULL                COMMENT '运营人企微账号userid',
     `default_poster_url`        VARCHAR(512)    DEFAULT NULL                COMMENT '默认海报图片URL(原始上传地址)',
     `default_poster_media_id`   VARCHAR(128)    DEFAULT NULL                COMMENT '默认海报企微素材ID(调用素材接口后获取)',
-    `default_push_url`          VARCHAR(512)    DEFAULT NULL                COMMENT '默认推流地址(企微)',
+    `default_push_url`          VARCHAR(512)    DEFAULT NULL                COMMENT '默认推流地址',
+    `default_play_url`          VARCHAR(512)    DEFAULT NULL                COMMENT '默认播放地址',
     `default_trans_push_urls`   VARCHAR(2048)   DEFAULT NULL                COMMENT '默认转推流地址JSON数组,如["rtmp://qiniu.xxx/live1","rtmp://qiniu.xxx/live2"]',
     `status`                    TINYINT         DEFAULT 0                   COMMENT '状态: 0-正常 1-停用',
     `del_flag`                  TINYINT         DEFAULT 0                   COMMENT '删除标志: 0-未删除 1-已删除',
@@ -68,7 +75,8 @@ CREATE TABLE `we_live_item` (
     `operator_userid`       VARCHAR(64)     DEFAULT NULL                COMMENT '运营人userid(冗余)',
     `poster_media_id`       VARCHAR(128)    DEFAULT NULL                COMMENT '海报企微素材ID',
     `poster_url`            VARCHAR(512)    DEFAULT NULL                COMMENT '海报图片URL',
-    `push_stream_url`       VARCHAR(512)    DEFAULT NULL                COMMENT '企微推流地址(从直播详情获取)',
+    `push_stream_url`       VARCHAR(512)    DEFAULT NULL                COMMENT '推流地址',
+    `play_stream_url`       VARCHAR(512)    DEFAULT NULL                COMMENT '播放地址',
     `trans_push_urls`       VARCHAR(2048)   DEFAULT NULL                COMMENT '转推流地址JSON数组,如["rtmp://wecom.xxx","rtmp://qiniu.xxx/live1"]',
     `start_time`            DATETIME        NOT NULL                    COMMENT '课程开始时间',
     `end_time`              DATETIME        NOT NULL                    COMMENT '课程结束时间',
