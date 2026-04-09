@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyink.wecom.mapper.WeLiveCourseMapper">
+
+    <resultMap type="com.easyink.wecom.domain.live.WeLiveCourse" id="WeLiveCourseResult">
+        <id property="id" column="id"/>
+        <result property="corpId" column="corp_id"/>
+        <result property="roomId" column="room_id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="weekDays" column="week_days"/>
+        <result property="generateRecording" column="generate_recording"/>
+        <result property="status" column="status"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="roomName" column="room_name"/>
+    </resultMap>
+
+    <select id="selectCourseListWithRoomName" resultMap="WeLiveCourseResult">
+        SELECT c.*, r.room_name
+        FROM we_live_course c
+        LEFT JOIN we_live_room r ON c.room_id = r.id AND r.del_flag = 0
+        WHERE c.del_flag = 0
+          AND c.status = 0
+          AND c.corp_id = #{corpId}
+        ORDER BY c.create_time DESC
+    </select>
+
+</mapper>

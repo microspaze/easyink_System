@@ -148,6 +148,7 @@ ruoyi:
       - /actuator/**
       - /open_api/**
       - /transfer/**
+      - /open/live/**
 
 
 # 开发环境配置
@@ -492,6 +493,12 @@ wecome:
           - /externalcontact/groupchat/update_join_way
           - /externalcontact/groupchat/del_join_way
           - /externalcontact/unionid_to_external_userid
+          - /living/create_living
+          - /living/get_living_info
+          - /living/get_watch_stat
+          - /living/get_living_code
+          - /living/modify_living
+          - /living/cancel_living
   needErrcodeUrl: # 如果有错误码需要单独业务处理,不抛出异常的接口
     - /externalcontact/get_group_msg_result
     - /externalcontact/del_corp_tag

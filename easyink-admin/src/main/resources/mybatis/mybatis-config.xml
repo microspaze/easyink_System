@@ -16,6 +16,7 @@
         <typeHandler handler="com.easyink.framework.handler.StringArrayJoinTypeHandler"/>
         <typeHandler handler="com.easyink.wecom.handler.GenericTypeHandler"/>
         <typeHandler handler="com.easyink.wecom.handler.ListTypeHandler"/>
+        <typeHandler handler="com.easyink.wecom.handler.JsonStringListTypeHandler"/>
     </typeHandlers>
 
 </configuration>

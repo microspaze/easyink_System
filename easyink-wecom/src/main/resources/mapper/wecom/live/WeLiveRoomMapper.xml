@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyink.wecom.mapper.WeLiveRoomMapper">
+
+    <resultMap type="com.easyink.wecom.domain.live.WeLiveRoom" id="WeLiveRoomResult">
+        <id property="id" column="id"/>
+        <result property="corpId" column="corp_id"/>
+        <result property="roomName" column="room_name"/>
+        <result property="speakerName" column="speaker_name"/>
+        <result property="description" column="description"/>
+        <result property="operatorUserid" column="operator_userid"/>
+        <result property="defaultPosterUrl" column="default_poster_url"/>
+        <result property="defaultPosterMediaId" column="default_poster_media_id"/>
+        <result property="defaultPushUrl" column="default_push_url"/>
+        <result property="defaultTransPushUrls" column="default_trans_push_urls"
+                typeHandler="com.easyink.wecom.handler.JsonStringListTypeHandler"/>
+        <result property="status" column="status"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+</mapper>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyink.wecom.mapper.WeLiveItemMapper">
+
+    <resultMap type="com.easyink.wecom.domain.live.WeLiveItem" id="WeLiveItemResult">
+        <id property="id" column="id"/>
+        <result property="corpId" column="corp_id"/>
+        <result property="roomId" column="room_id"/>
+        <result property="courseId" column="course_id"/>
+        <result property="livingid" column="livingid"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="speakerName" column="speaker_name"/>
+        <result property="operatorUserid" column="operator_userid"/>
+        <result property="posterMediaId" column="poster_media_id"/>
+        <result property="posterUrl" column="poster_url"/>
+        <result property="pushStreamUrl" column="push_stream_url"/>
+        <result property="transPushUrls" column="trans_push_urls"
+                typeHandler="com.easyink.wecom.handler.JsonStringListTypeHandler"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="generateRecording" column="generate_recording"/>
+        <result property="livingStatus" column="living_status"/>
+        <result property="txTaskId" column="tx_task_id"/>
+        <result property="txTaskStatus" column="tx_task_status"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="roomName" column="room_name"/>
+    </resultMap>
+
+    <select id="selectLatestItemsByRoomId" resultMap="WeLiveItemResult">
+        SELECT id, corp_id, room_id, livingid, title, living_status, start_time, end_time
+        FROM we_live_item
+        WHERE room_id = #{roomId}
+          AND del_flag = 0
+          AND livingid IS NOT NULL
+          AND living_status IN (0, 1, 2)
+        ORDER BY start_time DESC
+        LIMIT 2
+    </select>
+
+    <select id="selectItemListWithRoomName" parameterType="com.easyink.wecom.domain.live.WeLiveItem" resultMap="WeLiveItemResult">
+        SELECT i.*, r.room_name
+        FROM we_live_item i
+        LEFT JOIN we_live_room r ON i.room_id = r.id AND r.del_flag = 0
+        <where>
+            i.del_flag = 0
+            <if test="corpId != null and corpId != ''">
+                AND i.corp_id = #{corpId}
+            </if>
+            <if test="roomId != null">
+                AND i.room_id = #{roomId}
+            </if>
+            <if test="courseId != null">
+                AND i.course_id = #{courseId}
+            </if>
+            <if test="livingid != null and livingid != ''">
+                AND i.livingid = #{livingid}
+            </if>
+            <if test="livingStatus != null">
+                AND i.living_status = #{livingStatus}
+            </if>
+            <if test="beginTime != null and beginTime != ''">
+                AND i.start_time &gt;= #{beginTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND i.start_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY i.start_time DESC
+    </select>
+
+    <select id="countByCourseIdAndDate" resultType="int">
+        SELECT COUNT(1)
+        FROM we_live_item
+        WHERE course_id = #{courseId}
+          AND del_flag = 0
+          AND DATE(start_time) = #{startTime}
+    </select>
+
+</mapper>

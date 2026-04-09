@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyink.wecom.mapper.WeLiveStatisticMapper">
+
+    <resultMap type="com.easyink.wecom.domain.live.WeLiveStatistic" id="WeLiveStatisticResult">
+        <id property="id" column="id"/>
+        <result property="corpId" column="corp_id"/>
+        <result property="livingid" column="livingid"/>
+        <result property="itemId" column="item_id"/>
+        <result property="externalUserid" column="external_userid"/>
+        <result property="enterTime" column="enter_time"/>
+        <result property="watchTime" column="watch_time"/>
+        <result property="commentCount" column="comment_count"/>
+        <result property="isInternal" column="is_internal"/>
+        <result property="inviterUserid" column="inviter_userid"/>
+        <result property="inviterExternalUserid" column="inviter_external_userid"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="inviterName" column="inviter_name"/>
+    </resultMap>
+
+    <select id="selectStatisticByItemId" resultMap="WeLiveStatisticResult">
+        SELECT s.*,
+               wc.`name` AS customer_name,
+               wu.user_name AS inviter_name
+        FROM we_live_statistic s
+        LEFT JOIN we_customer wc ON wc.external_userid = s.external_userid AND wc.corp_id = s.corp_id
+        LEFT JOIN we_user wu ON wu.user_id = s.inviter_userid AND wu.corp_id = s.corp_id
+        WHERE s.item_id = #{itemId}
+          AND s.corp_id = #{corpId}
+        ORDER BY s.enter_time DESC
+    </select>
+
+    <select id="selectStatisticByUserIds" resultMap="WeLiveStatisticResult">
+        SELECT s.*,
+               wc.`name` AS customer_name,
+               wu.user_name AS inviter_name
+        FROM we_live_statistic s
+        LEFT JOIN we_customer wc ON wc.external_userid = s.external_userid AND wc.corp_id = s.corp_id
+        LEFT JOIN we_user wu ON wu.user_id = s.inviter_userid AND wu.corp_id = s.corp_id
+        INNER JOIN we_flower_customer_rel wfcr ON wfcr.external_userid = s.external_userid
+            AND wfcr.corp_id = s.corp_id AND wfcr.status = '0'
+        <where>
+            s.corp_id = #{corpId}
+            <if test="livingid != null and livingid != ''">
+                AND s.livingid = #{livingid}
+            </if>
+            <if test="roomId != null">
+                AND EXISTS (SELECT 1 FROM we_live_item i WHERE i.id = s.item_id AND i.room_id = #{roomId} AND i.del_flag = 0)
+            </if>
+            <if test="userIdList != null and userIdList.size() > 0">
+                AND wfcr.user_id IN
+                <foreach item="userId" collection="userIdList" open="(" separator="," close=")">
+                    #{userId}
+                </foreach>
+            </if>
+            <if test="beginTime != null and beginTime != ''">
+                AND s.create_time &gt;= #{beginTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND s.create_time &lt;= #{endTime}
+            </if>
+        </where>
+        GROUP BY s.id
+        ORDER BY s.enter_time DESC
+    </select>
+
+</mapper>
