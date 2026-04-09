@@ -49,8 +49,8 @@
             WHERE weca.corp_id = #{corpId}
             AND weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}'
             AND DATE(wfcr.create_time) = DATE(wfcr.delete_time)
-            AND DATE_FORMAT(weca.add_time, '%Y-%m-%d') &gt;= #{beginDate}
-            AND DATE_FORMAT(weca.add_time, '%Y-%m-%d') &lt;= #{endDate}
+            AND weca.add_time &gt;= #{beginDate}
+            AND weca.add_time &lt;= #{endDate}
             <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
                 AND weca.emple_code_id IN
                 <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
@@ -176,8 +176,8 @@
             WHERE weca.corp_id = #{corpId}
             AND weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}'
             AND DATE(wfcr.create_time) = DATE(wfcr.delete_time)
-            AND DATE_FORMAT(weca.add_time, '%Y-%m-%d') &gt;= #{beginDate}
-            AND DATE_FORMAT(weca.add_time, '%Y-%m-%d') &lt;= #{endDate}
+            AND weca.add_time &gt;= #{beginDate}
+            AND weca.add_time &lt;= #{endDate}
             <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
                 AND weca.emple_code_id IN
                 <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
@@ -238,8 +238,8 @@
             WHERE weca.corp_id = #{corpId}
             AND weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}'
             AND DATE(wfcr.create_time) = DATE(wfcr.delete_time)
-            AND DATE_FORMAT(weca.add_time, '%Y-%m-%d') &gt;= #{beginDate}
-            AND DATE_FORMAT(weca.add_time, '%Y-%m-%d') &lt;= #{endDate}
+            AND weca.add_time &gt;= #{beginDate}
+            AND weca.add_time &lt;= #{endDate}
             <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
                 AND weca.emple_code_id IN
                 <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
@@ -321,8 +321,8 @@
             WHERE weca.corp_id = #{corpId}
             AND weca.type = '${@com.easyink.common.enums.WeEmpleCodeAnalyseTypeEnum@DEL.type}'
             AND DATE(wfcr.create_time) = DATE(wfcr.delete_time)
-            AND DATE_FORMAT(weca.add_time, '%Y-%m-%d') &gt;= #{beginDate}
-            AND DATE_FORMAT(weca.add_time, '%Y-%m-%d') &lt;= #{endDate}
+            AND weca.add_time &gt;= #{beginDate}
+            AND weca.add_time &lt;= #{endDate}
             <if test="empleCodeIdList != null and empleCodeIdList.size() > 0">
                 AND weca.emple_code_id IN
                 <foreach collection="empleCodeIdList" item="empleCodeId" open="(" separator="," close=")">
