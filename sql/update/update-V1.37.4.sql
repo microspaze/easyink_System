@@ -123,11 +123,11 @@ CREATE TABLE `we_live_statistic` (
 
 -- 一级目录: 企微直播(挂在运营中心下)
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
-VALUES (2400, '企微直播', 2188, 32, 'live', NULL, 1, 'M', '0', '0', '', 'live', 'admin', NOW(), '', NULL, '企微直播目录');
+VALUES (2400, '企微直播', 2188, 32, 'live', NULL, 1, 'M', '0', '0', '', 'online', 'admin', NOW(), '', NULL, '企微直播目录');
 
 -- 二级菜单: 直播间管理
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
-VALUES (2401, '直播间管理', 2400, 1, 'room', 'live/room/index', 1, 'C', '0', '0', 'live:room:list', '#', 'admin', NOW(), '', NULL, '直播间管理菜单');
+VALUES (2401, '直播间管理', 2400, 1, 'room', 'live/room', 1, 'C', '0', '0', 'live:room:list', '#', 'admin', NOW(), '', NULL, '直播间管理菜单');
 
 -- 三级按钮: 直播间管理按钮权限
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
@@ -141,7 +141,7 @@ VALUES (2405, '删除直播间', 2401, 4, '', NULL, 1, 'F', '0', '0', 'live:room
 
 -- 二级菜单: 课表管理
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
-VALUES (2406, '课表管理', 2400, 2, 'course', 'live/course/index', 1, 'C', '0', '0', 'live:course:list', '#', 'admin', NOW(), '', NULL, '课表管理菜单');
+VALUES (2406, '课表管理', 2400, 2, 'course', 'live/course', 1, 'C', '0', '0', 'live:course:list', '#', 'admin', NOW(), '', NULL, '课表管理菜单');
 
 -- 三级按钮: 课表管理按钮权限
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
@@ -155,7 +155,7 @@ VALUES (2410, '删除课表', 2406, 4, '', NULL, 1, 'F', '0', '0', 'live:course:
 
 -- 二级菜单: 课程列表
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
-VALUES (2411, '课程列表', 2400, 3, 'item', 'live/item/index', 1, 'C', '0', '0', 'live:item:list', '#', 'admin', NOW(), '', NULL, '课程列表菜单');
+VALUES (2411, '课程列表', 2400, 3, 'item', 'live/item', 1, 'C', '0', '0', 'live:item:list', '#', 'admin', NOW(), '', NULL, '课程列表菜单');
 
 -- 三级按钮: 课程列表按钮权限
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
@@ -167,7 +167,7 @@ VALUES (2414, '取消直播', 2411, 3, '', NULL, 1, 'F', '0', '0', 'live:item:ca
 
 -- 二级菜单: 观看统计
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
-VALUES (2415, '观看统计', 2400, 4, 'statistic', 'live/statistic/index', 1, 'C', '0', '0', 'live:statistic:customer', '#', 'admin', NOW(), '', NULL, '观看统计菜单');
+VALUES (2415, '观看统计', 2400, 4, 'statistic', 'live/statistic', 1, 'C', '0', '0', 'live:statistic:customer', '#', 'admin', NOW(), '', NULL, '观看统计菜单');
 
 -- 三级按钮: 观看统计按钮权限
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
